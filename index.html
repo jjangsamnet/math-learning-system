@@ -621,14 +621,14 @@
                 <div class="form-group">
                     <label class="form-label">반 선택</label>
                     <div class="class-selector">
-                        <button class="class-btn" onclick="selectClass(1)">1반</button>
-                        <button class="class-btn" onclick="selectClass(2)">2반</button>
-                        <button class="class-btn" onclick="selectClass(3)">3반</button>
-                        <button class="class-btn" onclick="selectClass(4)">4반</button>
-                        <button class="class-btn" onclick="selectClass(5)">5반</button>
-                        <button class="class-btn" onclick="selectClass(6)">6반</button>
-                        <button class="class-btn" onclick="selectClass(7)">7반</button>
-                        <button class="class-btn" onclick="selectClass(8)">8반</button>
+                        <button class="class-btn" onclick="selectClass(1, this)">1반</button>
+                        <button class="class-btn" onclick="selectClass(2, this)">2반</button>
+                        <button class="class-btn" onclick="selectClass(3, this)">3반</button>
+                        <button class="class-btn" onclick="selectClass(4, this)">4반</button>
+                        <button class="class-btn" onclick="selectClass(5, this)">5반</button>
+                        <button class="class-btn" onclick="selectClass(6, this)">6반</button>
+                        <button class="class-btn" onclick="selectClass(7, this)">7반</button>
+                        <button class="class-btn" onclick="selectClass(8, this)">8반</button>
                     </div>
                 </div>
                 
@@ -753,19 +753,19 @@
 
     <script>
         // ======================================
-        // Firebase 설정 - 여기를 수정하세요!
+        // Firebase 설정 - 수정됨!
         // ======================================
         
-        // Firebase 설정 객체 (Firebase Console에서 복사한 내용으로 교체)
+        // Firebase 설정 객체 (databaseURL 추가)
         const firebaseConfig = {
-            // 아래 내용을 실제 Firebase 프로젝트 설정으로 교체하세요
-          apiKey: "AIzaSyD5XcVm5JhET7DN0HjKzDzQPlD4WMVp1ak",
-          authDomain: "multiplication-practice-2024.firebaseapp.com",
-          projectId: "multiplication-practice-2024",
-          storageBucket: "multiplication-practice-2024.firebasestorage.app",
-          messagingSenderId: "168092521396",
-          appId: "1:168092521396:web:c7650dd861b7d9727e98e1",
-          measurementId: "G-L81KFNV87W"
+            apiKey: "AIzaSyD5XcVm5JhET7DN0HjKzDzQPlD4WMVp1ak",
+            authDomain: "multiplication-practice-2024.firebaseapp.com",
+            databaseURL: "https://multiplication-practice-2024-default-rtdb.asia-southeast1.firebasedatabase.app", // ⭐ 이 줄이 추가됨!
+            projectId: "multiplication-practice-2024",
+            storageBucket: "multiplication-practice-2024.firebasestorage.app",
+            messagingSenderId: "168092521396",
+            appId: "1:168092521396:web:c7650dd861b7d9727e98e1",
+            measurementId: "G-L81KFNV87W"
         };
 
         // Firebase 관련 전역 변수
@@ -831,14 +831,6 @@
             } catch (error) {
                 console.error('❌ Firebase 초기화 실패:', error);
                 console.error('상세 에러:', error.message);
-                
-                // 설정 확인 메시지
-                if (firebaseConfig.apiKey === "AIzaSyD5XcVm5JhET7DN0HjKzDzQPlD4WMVp1ak") {
-                    alert('⚠️ Firebase 설정이 필요합니다!\n\nindex.html 파일의 firebaseConfig 부분을\nFirebase Console에서 복사한 실제 설정으로 교체해주세요.');
-                    console.log('Firebase Console: https://console.firebase.google.com');
-                } else {
-                    alert('Firebase 연결 오류가 발생했습니다.\n콘솔을 확인해주세요.');
-                }
                 
                 // 오프라인 모드로 작동
                 const statusElement = document.getElementById('connectionStatus');
@@ -947,15 +939,17 @@
         // 로그인 관련 함수
         // ======================================
         
-        function selectClass(classNum) {
+        function selectClass(classNum, button) {
             document.querySelectorAll('.class-btn').forEach(btn => {
                 btn.classList.remove('selected');
             });
-            event.target.classList.add('selected');
+            button.classList.add('selected');
             gameState.currentClass = classNum;
+            console.log('선택된 반:', classNum);
         }
 
         function studentLogin() {
+            console.log('로그인 시도...');
             const name = document.getElementById('studentName').value.trim();
             if (!name) {
                 alert('이름을 입력해주세요!');
@@ -967,6 +961,7 @@
             }
 
             gameState.currentUser = name;
+            console.log('로그인 정보:', gameState.currentClass + '반', name);
             
             // Firebase에서 기존 데이터 로드
             if (database) {
@@ -974,6 +969,7 @@
                     if (savedData) {
                         gameState.currentLevel = savedData.level;
                         gameState.score = savedData.score;
+                        console.log('기존 데이터 로드:', savedData);
                     }
                     
                     // 로그인 활동 기록
@@ -986,9 +982,13 @@
                     
                     saveUserData();
                     showGameScreen();
+                }).catch(error => {
+                    console.error('데이터 로드 에러:', error);
+                    showGameScreen(); // 에러가 있어도 게임 시작
                 });
             } else {
                 // 오프라인 모드
+                console.log('오프라인 모드로 게임 시작');
                 showGameScreen();
             }
         }
