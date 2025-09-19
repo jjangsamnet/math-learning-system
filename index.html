@@ -759,13 +759,13 @@
         // Firebase 설정 객체 (Firebase Console에서 복사한 내용으로 교체)
         const firebaseConfig = {
             // 아래 내용을 실제 Firebase 프로젝트 설정으로 교체하세요
-            apiKey: "YOUR-API-KEY",
-            authDomain: "YOUR-PROJECT.firebaseapp.com", 
-            databaseURL: "https://YOUR-PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "YOUR-PROJECT",
-            storageBucket: "YOUR-PROJECT.appspot.com",
-            messagingSenderId: "YOUR-SENDER-ID",
-            appId: "YOUR-APP-ID"
+          apiKey: "AIzaSyD5XcVm5JhET7DN0HjKzDzQPlD4WMVp1ak",
+          authDomain: "multiplication-practice-2024.firebaseapp.com",
+          projectId: "multiplication-practice-2024",
+          storageBucket: "multiplication-practice-2024.firebasestorage.app",
+          messagingSenderId: "168092521396",
+          appId: "1:168092521396:web:c7650dd861b7d9727e98e1",
+          measurementId: "G-L81KFNV87W"
         };
 
         // Firebase 관련 전역 변수
@@ -833,7 +833,7 @@
                 console.error('상세 에러:', error.message);
                 
                 // 설정 확인 메시지
-                if (firebaseConfig.apiKey === "YOUR-API-KEY") {
+                if (firebaseConfig.apiKey === "AIzaSyD5XcVm5JhET7DN0HjKzDzQPlD4WMVp1ak") {
                     alert('⚠️ Firebase 설정이 필요합니다!\n\nindex.html 파일의 firebaseConfig 부분을\nFirebase Console에서 복사한 실제 설정으로 교체해주세요.');
                     console.log('Firebase Console: https://console.firebase.google.com');
                 } else {
