@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>곱셈 마스터 - 3학년 온라인 학습 시스템</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        /* 연결 상태 표시 */
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .connection-status.online {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .connection-status.offline {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        /* 로그인 화면 */
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .login-title {
+            font-size: 2.5em;
+            color: #5a67d8;
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            font-size: 1.2em;
+            color: #718096;
+            margin-bottom: 30px;
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: bold;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1.1em;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #5a67d8;
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
+        }
+
+        .class-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .class-btn {
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.1em;
+        }
+
+        .class-btn.selected {
+            background: #5a67d8;
+            color: white;
+            border-color: #5a67d8;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        .teacher-login-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 15px;
+            background: #5a67d8;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .teacher-login-btn:hover {
+            background: #4c51bf;
+            transform: translateY(-2px);
+        }
+
+        /* 게임 화면 */
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+        }
+
+        .student-info {
+            font-size: 1.1em;
+            color: #4a5568;
+        }
+
+        .level-info {
+            background: #5a67d8;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .score-display {
+            background: #fef5e7;
+            color: #f39c12;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .progress-section {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 20px;
+        }
+
+        .calculation-area {
+            flex: 1;
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .vertical-calc {
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            line-height: 1.8;
+            color: #2d3748;
+            text-align: center;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin: 5px 0;
+            padding-right: 20px;
+        }
+
+        .calc-input {
+            width: 50px;
+            height: 45px;
+            font-size: 22px;
+            text-align: center;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            margin: 0 3px;
+            background: white;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .calc-input:focus {
+            border-color: #5a67d8;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
+        }
+
+        .calc-input.correct {
+            background: #c6f6d5;
+            border-color: #48bb78;
+            animation: correctPulse 0.5s;
+        }
+
+        .calc-input.wrong {
+            background: #fed7d7;
+            border-color: #e53e3e;
+            animation: shake 0.5s;
+        }
+
+        .fixed-number {
+            display: inline-block;
+            width: 50px;
+            height: 45px;
+            line-height: 45px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .operator {
+            width: 30px;
+            text-align: center;
+            color: #e53e3e;
+            font-weight: bold;
+        }
+
+        .line {
+            border-bottom: 3px solid #4a5568;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        .number-pad {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 15px;
+            width: 280px;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .key {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d3748;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .key:hover {
+            background: #5a67d8;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .key:active {
+            transform: translateY(0);
+        }
+
+        .key.delete {
+            background: #fed7d7;
+            color: #e53e3e;
+        }
+
+        .key.clear {
+            background: #fef5e7;
+            color: #f39c12;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-check {
+            background: #5a67d8;
+            color: white;
+        }
+
+        .btn-new {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-hint {
+            background: #f6ad55;
+            color: white;
+        }
+
+        .logout-btn {
+            background: #e53e3e;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .feedback {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .feedback.wrong {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        /* 교사 모니터링 화면 */
+        .monitor-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .monitor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .monitor-title {
+            font-size: 2em;
+            color: #2d3748;
+        }
+
+        .refresh-time {
+            color: #718096;
+        }
+
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .ranking-panel, .activity-panel {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .panel-title {
+            font-size: 1.3em;
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .student-rank {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .student-rank:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .rank-number {
+            width: 30px;
+            height: 30px;
+            background: #5a67d8;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .rank-number.gold {
+            background: #f39c12;
+        }
+
+        .rank-number.silver {
+            background: #95a5a6;
+        }
+
+        .rank-number.bronze {
+            background: #cd7f32;
+        }
+
+        .activity-log {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.95em;
+            animation: slideIn 0.5s;
+        }
+
+        .activity-item.correct {
+            border-left: 4px solid #48bb78;
+        }
+
+        .activity-item.wrong {
+            border-left: 4px solid #e53e3e;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .number-pad {
+                width: 100%;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+
+            .monitor-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 연결 상태 표시 -->
+    <div class="connection-status offline" id="connectionStatus">
+        <span class="status-dot"></span>
+        <span id="statusText">연결 중...</span>
+    </div>
+
+    <!-- 로그인 화면 -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <h1 class="login-title">🎯 곱셈 마스터</h1>
+            <p class="login-subtitle">3학년 온라인 학습 시스템</p>
+            
+            <div class="login-form">
+                <div class="form-group">
+                    <label class="form-label">반 선택</label>
+                    <div class="class-selector">
+                        <button class="class-btn" onclick="selectClass(1)">1반</button>
+                        <button class="class-btn" onclick="selectClass(2)">2반</button>
+                        <button class="class-btn" onclick="selectClass(3)">3반</button>
+                        <button class="class-btn" onclick="selectClass(4)">4반</button>
+                        <button class="class-btn" onclick="selectClass(5)">5반</button>
+                        <button class="class-btn" onclick="selectClass(6)">6반</button>
+                        <button class="class-btn" onclick="selectClass(7)">7반</button>
+                        <button class="class-btn" onclick="selectClass(8)">8반</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">이름</label>
+                    <input type="text" id="studentName" class="form-input" placeholder="이름을 입력하세요">
+                </div>
+                
+                <button class="login-btn" onclick="studentLogin()">시작하기</button>
+                
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+                    <h3 style="color: #4a5568; margin-bottom: 15px;">👩‍🏫 교사 전용</h3>
+                    
+                    <div style="background: #f7fafc; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label class="form-label">교사 비밀번호</label>
+                            <input type="password" id="teacherPassword" class="form-input" 
+                                   placeholder="비밀번호를 입력하세요" 
+                                   onkeypress="if(event.key==='Enter') teacherLoginWithInput()"
+                                   style="text-align: center;">
+                        </div>
+                        <button class="teacher-login-btn" onclick="teacherLoginWithInput()">
+                            🔐 모니터링 로그인
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 화면 -->
+    <div id="gameScreen" class="screen">
+        <div class="game-container">
+            <div class="game-header">
+                <div class="student-info" id="studentInfo"></div>
+                <div class="level-info" id="levelInfo">Level 1</div>
+                <div class="score-display" id="scoreDisplay">🏆 0점</div>
+                <button class="logout-btn" onclick="logout()">종료</button>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill">0/10</div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="calculation-area">
+                    <div class="vertical-calc" id="calcArea"></div>
+                    <div class="feedback" id="feedback"></div>
+                </div>
+
+                <div class="number-pad">
+                    <div class="keypad">
+                        <button class="key" onclick="inputNumber('1')">1</button>
+                        <button class="key" onclick="inputNumber('2')">2</button>
+                        <button class="key" onclick="inputNumber('3')">3</button>
+                        <button class="key" onclick="inputNumber('4')">4</button>
+                        <button class="key" onclick="inputNumber('5')">5</button>
+                        <button class="key" onclick="inputNumber('6')">6</button>
+                        <button class="key" onclick="inputNumber('7')">7</button>
+                        <button class="key" onclick="inputNumber('8')">8</button>
+                        <button class="key" onclick="inputNumber('9')">9</button>
+                        <button class="key clear" onclick="clearAll()">C</button>
+                        <button class="key" onclick="inputNumber('0')">0</button>
+                        <button class="key delete" onclick="deleteNumber()">←</button>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button class="btn btn-hint" onclick="showHint()">💡</button>
+                        <button class="btn btn-check" onclick="checkAnswer()">확인</button>
+                        <button class="btn btn-new" onclick="skipProblem()">건너뛰기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 교사 모니터링 화면 -->
+    <div id="monitorScreen" class="screen">
+        <div class="monitor-container">
+            <div class="monitor-header">
+                <h1 class="monitor-title">📊 실시간 모니터링</h1>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label style="color: #4a5568; font-weight: bold;">반 선택:</label>
+                        <select id="classFilter" onchange="updateMonitor()" style="padding: 8px 15px; border: 2px solid #5a67d8; border-radius: 8px; font-size: 1em; cursor: pointer; background: white; color: #4a5568; font-weight: bold;">
+                            <option value="all">🏫 전체</option>
+                            <option value="1">1반</option>
+                            <option value="2">2반</option>
+                            <option value="3">3반</option>
+                            <option value="4">4반</option>
+                            <option value="5">5반</option>
+                            <option value="6">6반</option>
+                            <option value="7">7반</option>
+                            <option value="8">8반</option>
+                        </select>
+                    </div>
+                    <span class="refresh-time" id="refreshTime"></span>
+                    <button class="logout-btn" onclick="logout()">로그아웃</button>
+                </div>
+            </div>
+            
+            <!-- 전체 요약 정보 -->
+            <div id="summaryInfo" style="background: #edf2f7; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
+                <!-- 요약 정보가 여기에 동적으로 생성됩니다 -->
+            </div>
+
+            <div class="monitor-grid">
+                <div class="ranking-panel">
+                    <h2 class="panel-title" id="rankingTitle">🏆 실시간 랭킹 - 전체</h2>
+                    <div id="rankingList"></div>
+                </div>
+
+                <div class="activity-panel">
+                    <h2 class="panel-title" id="activityTitle">📝 최근 활동 - 전체</h2>
+                    <div class="activity-log" id="activityLog"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ======================================
+        // Firebase 설정 - 여기를 수정하세요!
+        // ======================================
+        const firebaseConfig = {
+            // Firebase Console에서 복사한 설정을 여기에 붙여넣으세요
+            apiKey: "YOUR-API-KEY",
+            authDomain: "YOUR-PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR-PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "YOUR-PROJECT",
+            storageBucket: "YOUR-PROJECT.appspot.com",
+            messagingSenderId: "YOUR-SENDER-ID",
+            appId: "YOUR-APP-ID"
+        };
+
+        // Firebase 초기화
+        let database = null;
+        let isFirebaseConnected = false;
+
+        function initFirebase() {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                
+                // 연결 상태 모니터링
+                const connectedRef = database.ref(".info/connected");
+                connectedRef.on("value", (snap) => {
+                    const statusElement = document.getElementById('connectionStatus');
+                    const statusText = document.getElementById('statusText');
+                    
+                    if (snap.val() === true) {
+                        isFirebaseConnected = true;
+                        statusElement.className = 'connection-status online';
+                        statusText.textContent = '온라인';
+                        console.log('✅ Firebase 연결됨');
+                    } else {
+                        isFirebaseConnected = false;
+                        statusElement.className = 'connection-status offline';
+                        statusText.textContent = '오프라인';
+                        console.log('⚠️ Firebase 연결 끊김');
+                    }
+                });
+                
+                return true;
+            } catch (error) {
+                console.error('Firebase 초기화 실패:', error);
+                alert('Firebase 설정을 확인해주세요!');
+                return false;
+            }
+        }
+
+        // ======================================
+        // 전역 상태 관리
+        // ======================================
+        const gameState = {
+            currentUser: null,
+            currentClass: null,
+            currentLevel: 1,
+            score: 0,
+            streak: 0,
+            problemsSolved: 0,
+            correctInLevel: 0,
+            totalInLevel: 10,
+            currentProblem: null,
+            currentFocus: null
+        };
+
+        // 10단계 난이도 설정
+        const levels = [
+            { name: "Level 1", description: "10의 배수 곱셈", range: [10, 20, 30, 40, 50], type: "tens" },
+            { name: "Level 2", description: "받아올림 없는 쉬운 곱셈", range: [11, 12, 21, 22, 31], type: "noCarry" },
+            { name: "Level 3", description: "한 자리 받아올림", range: [13, 14, 23, 24, 32], type: "oneCarry" },
+            { name: "Level 4", description: "10~20 범위", range: [10, 20], type: "range" },
+            { name: "Level 5", description: "20~30 범위", range: [20, 30], type: "range" },
+            { name: "Level 6", description: "30~40 범위", range: [30, 40], type: "range" },
+            { name: "Level 7", description: "40~50 범위", range: [40, 50], type: "range" },
+            { name: "Level 8", description: "50~70 범위", range: [50, 70], type: "range" },
+            { name: "Level 9", description: "70~90 범위", range: [70, 90], type: "range" },
+            { name: "Level 10", description: "최고 난이도 90~99", range: [90, 99], type: "range" }
+        ];
+
+        // ======================================
+        // Firebase 데이터 관리 함수들
+        // ======================================
+        
+        // 사용자 데이터 저장
+        function saveUserData() {
+            if (!database || !gameState.currentUser || !gameState.currentClass) return;
+            
+            const userData = {
+                name: gameState.currentUser,
+                class: gameState.currentClass,
+                level: gameState.currentLevel,
+                score: gameState.score,
+                lastPlayed: Date.now()
+            };
+            
+            // 개별 학생 데이터 저장
+            const userPath = `students/class${gameState.currentClass}/${gameState.currentUser}`;
+            database.ref(userPath).set(userData);
+            
+            // 전체 학생 리스트 업데이트
+            const allStudentsPath = `allStudents/${gameState.currentClass}_${gameState.currentUser}`;
+            database.ref(allStudentsPath).set(userData);
+        }
+
+        // 사용자 데이터 불러오기
+        function loadUserData(className, studentName) {
+            if (!database) return Promise.resolve(null);
+            
+            return database.ref(`students/class${className}/${studentName}`)
+                .once('value')
+                .then(snapshot => snapshot.val());
+        }
+
+        // 활동 로그 추가
+        function addActivityLog(activity) {
+            if (!database) return;
+            
+            const activityData = {
+                ...activity,
+                timestamp: Date.now()
+            };
+            
+            database.ref('activities').push(activityData);
+            
+            // 100개 이상이면 오래된 것 삭제
+            database.ref('activities').once('value', snapshot => {
+                const count = snapshot.numChildren();
+                if (count > 100) {
+                    const itemsToRemove = count - 100;
+                    let removed = 0;
+                    snapshot.forEach(child => {
+                        if (removed < itemsToRemove) {
+                            child.ref.remove();
+                            removed++;
+                        }
+                    });
+                }
+            });
+        }
+
+        // ======================================
+        // 로그인 관련 함수
+        // ======================================
+        
+        function selectClass(classNum) {
+            document.querySelectorAll('.class-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            gameState.currentClass = classNum;
+        }
+
+        function studentLogin() {
+            const name = document.getElementById('studentName').value.trim();
+            if (!name) {
+                alert('이름을 입력해주세요!');
+                return;
+            }
+            if (!gameState.currentClass) {
+                alert('반을 선택해주세요!');
+                return;
+            }
+
+            gameState.currentUser = name;
+            
+            // Firebase에서 기존 데이터 로드
+            if (database) {
+                loadUserData(gameState.currentClass, name).then(savedData => {
+                    if (savedData) {
+                        gameState.currentLevel = savedData.level;
+                        gameState.score = savedData.score;
+                    }
+                    
+                    // 로그인 활동 기록
+                    addActivityLog({
+                        name: name,
+                        class: gameState.currentClass,
+                        action: 'login',
+                        level: gameState.currentLevel
+                    });
+                    
+                    saveUserData();
+                    showGameScreen();
+                });
+            } else {
+                // 오프라인 모드
+                showGameScreen();
+            }
+        }
+
+        function teacherLoginWithInput() {
+            const passwordInput = document.getElementById('teacherPassword');
+            const password = passwordInput.value;
+            
+            if (password == '2025') {
+                alert('교사 인증 완료! 모니터링 화면으로 이동합니다.');
+                passwordInput.value = '';
+                showMonitorScreen();
+            } else if (password == '') {
+                alert('비밀번호를 입력해주세요.');
+            } else {
+                alert('비밀번호가 틀렸습니다.');
+                passwordInput.value = '';
+            }
+        }
+
+        // ======================================
+        // 화면 전환 함수
+        // ======================================
+        
+        function showGameScreen() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('monitorScreen').style.display = 'none';
+            
+            document.getElementById('loginScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            document.getElementById('monitorScreen').classList.remove('active');
+            
+            document.getElementById('studentInfo').textContent = `3학년 ${gameState.currentClass}반 ${gameState.currentUser}`;
+            updateDisplay();
+            newProblem();
+        }
+
+        function showMonitorScreen() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('monitorScreen').style.display = 'block';
+            
+            document.getElementById('loginScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('monitorScreen').classList.add('active');
+            
+            // 실시간 모니터링 시작
+            startRealtimeMonitoring();
+        }
+
+        function logout() {
+            if (gameState.currentUser) {
+                saveUserData();
+            }
+            
+            // 모니터링 중지
+            stopRealtimeMonitoring();
+            
+            gameState.currentUser = null;
+            gameState.currentClass = null;
+            gameState.currentLevel = 1;
+            gameState.score = 0;
+            gameState.streak = 0;
+            
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('monitorScreen').style.display = 'none';
+            
+            document.getElementById('loginScreen').classList.add('active');
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('monitorScreen').classList.remove('active');
+            
+            document.getElementById('studentName').value = '';
+            document.querySelectorAll('.class-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+        }
+
+        // ======================================
+        // 실시간 모니터링
+        // ======================================
+        let monitoringRefs = [];
+
+        function startRealtimeMonitoring() {
+            if (!database) {
+                console.log('오프라인 모드: 모니터링 불가');
+                return;
+            }
+            
+            // 기존 리스너 제거
+            stopRealtimeMonitoring();
+            
+            // 전체 학생 데이터 실시간 감시
+            const studentsRef = database.ref('allStudents');
+            studentsRef.on('value', snapshot => {
+                const students = [];
+                snapshot.forEach(child => {
+                    students.push(child.val());
+                });
+                updateMonitorDisplay(students, 'students');
+            });
+            monitoringRefs.push(studentsRef);
+            
+            // 활동 로그 실시간 감시
+            const activitiesRef = database.ref('activities').limitToLast(50);
+            activitiesRef.on('value', snapshot => {
+                const activities = [];
+                snapshot.forEach(child => {
+                    const activity = child.val();
+                    activities.push(activity);
+                });
+                activities.reverse();
+                updateMonitorDisplay(activities, 'activities');
+            });
+            monitoringRefs.push(activitiesRef);
+        }
+
+        function stopRealtimeMonitoring() {
+            monitoringRefs.forEach(ref => {
+                ref.off();
+            });
+            monitoringRefs = [];
+        }
+
+        let cachedStudents = [];
+        let cachedActivities = [];
+
+        function updateMonitorDisplay(data, type) {
+            if (type === 'students') {
+                cachedStudents = data;
+            } else if (type === 'activities') {
+                cachedActivities = data;
+            }
+            
+            updateMonitor();
+        }
+
+        function updateMonitor() {
+            const students = cachedStudents;
+            const activities = cachedActivities;
+            
+            const filterSelect = document.getElementById('classFilter');
+            const selectedClass = filterSelect ? filterSelect.value : 'all';
+            
+            let filteredStudents = students;
+            let filteredActivities = activities;
+            
+            if (selectedClass !== 'all') {
+                filteredStudents = students.filter(s => String(s.class) === String(selectedClass));
+                filteredActivities = activities.filter(a => String(a.class) === String(selectedClass));
+            }
+            
+            // 랭킹 업데이트
+            updateRanking(filteredStudents, selectedClass);
+            
+            // 활동 로그 업데이트
+            updateActivityLog(filteredActivities, selectedClass);
+            
+            // 요약 정보 업데이트
+            updateSummaryInfo(filteredStudents, filteredActivities, selectedClass);
+            
+            // 갱신 시간 표시
+            document.getElementById('refreshTime').textContent = 
+                `마지막 갱신: ${new Date().toLocaleTimeString('ko-KR')}`;
+        }
+
+        function updateRanking(students, selectedClass) {
+            const rankingTitle = document.getElementById('rankingTitle');
+            const classText = selectedClass === 'all' ? '전체' : `${selectedClass}반`;
+            rankingTitle.textContent = `🏆 실시간 랭킹 - ${classText}`;
+            
+            if (students.length > 0) {
+                const sortedStudents = students.sort((a, b) => b.score - a.score);
+                const rankingHtml = sortedStudents.slice(0, 10).map((student, index) => {
+                    const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+                    return `
+                        <div class="student-rank">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="rank-number ${rankClass}">${index + 1}</span>
+                                <span>${student.class}반 ${student.name}</span>
+                            </div>
+                            <div style="display: flex; gap: 20px;">
+                                <span style="color: #5a67d8;">Level ${student.level}</span>
+                                <span style="color: #f39c12; font-weight: bold;">${student.score}점</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('rankingList').innerHTML = rankingHtml;
+            } else {
+                document.getElementById('rankingList').innerHTML = '<p style="padding: 20px; text-align: center;">데이터가 없습니다.</p>';
+            }
+        }
+
+        function updateActivityLog(activities, selectedClass) {
+            const activityTitle = document.getElementById('activityTitle');
+            const classText = selectedClass === 'all' ? '전체' : `${selectedClass}반`;
+            activityTitle.textContent = `📝 최근 활동 - ${classText}`;
+            
+            if (activities.length > 0) {
+                const activityHtml = activities.slice(0, 20).map(activity => {
+                    const time = new Date(activity.timestamp || activity.time).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+                    const actionText = activity.action === 'correct' ? '✅ 정답' : 
+                                     activity.action === 'wrong' ? '❌ 오답' : 
+                                     activity.action === 'login' ? '🔑 로그인' : '📝 학습중';
+                    const className = activity.action === 'correct' ? 'correct' : 
+                                    activity.action === 'wrong' ? 'wrong' : '';
+                    
+                    return `
+                        <div class="activity-item ${className}">
+                            <strong>${activity.class}반 ${activity.name}</strong>
+                            ${actionText} (Level ${activity.level}) - ${time}
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('activityLog').innerHTML = activityHtml;
+            } else {
+                document.getElementById('activityLog').innerHTML = '<p style="padding: 20px; text-align: center;">활동 기록이 없습니다.</p>';
+            }
+        }
+
+        function updateSummaryInfo(students, activities, selectedClass) {
+            const summaryContainer = document.getElementById('summaryInfo');
+            
+            const today = new Date().toDateString();
+            const todayActivities = activities.filter(a => {
+                const actDate = new Date(a.timestamp || a.time).toDateString();
+                return actDate === today;
+            });
+            
+            const uniqueTodayStudents = new Set(todayActivities.map(a => `${a.class}-${a.name}`)).size;
+            
+            const correctCount = activities.filter(a => a.action === 'correct').length;
+            const wrongCount = activities.filter(a => a.action === 'wrong').length;
+            const totalAnswers = correctCount + wrongCount;
+            const correctRate = totalAnswers > 0 ? Math.round((correctCount / totalAnswers) * 100) : 0;
+            
+            const classLabel = selectedClass === 'all' ? '전체' : `${selectedClass}반`;
+            
+            summaryContainer.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 2em; color: #5a67d8; font-weight: bold;">${students.length}</div>
+                    <div style="color: #718096;">${classLabel} 학생</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2em; color: #48bb78; font-weight: bold;">${uniqueTodayStudents}</div>
+                    <div style="color: #718096;">오늘 활동</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2em; color: #f39c12; font-weight: bold;">${activities.length}</div>
+                    <div style="color: #718096;">총 활동</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2em; color: #e53e3e; font-weight: bold;">${correctRate}%</div>
+                    <div style="color: #718096;">정답률</div>
+                </div>
+            `;
+        }
+
+        // ======================================
+        // 게임 로직
+        // ======================================
+        
+        function generateProblem() {
+            const level = levels[gameState.currentLevel - 1];
+            let num1, num2;
+
+            if (level.type === 'tens') {
+                num1 = level.range[Math.floor(Math.random() * level.range.length)];
+                num2 = Math.floor(Math.random() * 9) + 1;
+            } else if (level.type === 'noCarry') {
+                num1 = level.range[Math.floor(Math.random() * level.range.length)];
+                num2 = Math.floor(Math.random() * 9) + 11;
+            } else if (level.type === 'oneCarry') {
+                num1 = level.range[Math.floor(Math.random() * level.range.length)];
+                num2 = Math.floor(Math.random() * 20) + 15;
+            } else {
+                const min = level.range[0];
+                const max = level.range[1];
+                num1 = Math.floor(Math.random() * (max - min + 1)) + min;
+                num2 = Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            if (num1 < 10) num1 = 10;
+            if (num2 < 10) num2 = 10;
+
+            return { num1, num2 };
+        }
+
+        function newProblem() {
+            const problem = generateProblem();
+            gameState.currentProblem = problem;
+            
+            renderCalculation(problem.num1, problem.num2);
+            clearFeedback();
+        }
+
+        function renderCalculation(num1, num2) {
+            const num1Str = num1.toString().padStart(2, ' ');
+            const num2Str = num2.toString().padStart(2, ' ');
+            
+            const onesDigit = parseInt(num2Str[1]) || 0;
+            const tensDigit = parseInt(num2Str[0]) || 0;
+            const partial1 = num1 * onesDigit;
+            const partial2 = num1 * tensDigit;
+            const final = num1 * num2;
+            
+            let html = '<div style="position: relative; display: inline-block;">';
+            
+            html += '<div class="calc-row">';
+            for (let i = 0; i < num1Str.length; i++) {
+                if (num1Str[i] !== ' ') {
+                    html += `<span class="fixed-number">${num1Str[i]}</span>`;
+                }
+            }
+            html += '</div>';
+            
+            html += '<div class="calc-row">';
+            html += '<span class="operator">×</span>';
+            for (let i = 0; i < num2Str.length; i++) {
+                if (num2Str[i] !== ' ') {
+                    html += `<span class="fixed-number">${num2Str[i]}</span>`;
+                }
+            }
+            html += '</div>';
+            
+            html += '<div class="line"></div>';
+            
+            if (num2 < 10) {
+                const finalStr = final.toString();
+                html += '<div class="calc-row">';
+                for (let i = 0; i < finalStr.length; i++) {
+                    html += `<input type="text" class="calc-input" id="final_${i}" maxlength="1" data-answer="${finalStr[i]}" onfocus="setFocus(this)">`;
+                }
+                html += '</div>';
+            } else {
+                if (onesDigit > 0) {
+                    html += '<div class="calc-row">';
+                    const partial1Str = partial1.toString();
+                    for (let i = 0; i < partial1Str.length; i++) {
+                        html += `<input type="text" class="calc-input" id="partial1_${i}" maxlength="1" data-answer="${partial1Str[i]}" onfocus="setFocus(this)">`;
+                    }
+                    html += '</div>';
+                }
+                
+                if (tensDigit > 0) {
+                    html += '<div class="calc-row">';
+                    const partial2Str = partial2.toString();
+                    for (let i = 0; i < partial2Str.length; i++) {
+                        html += `<input type="text" class="calc-input" id="partial2_${i}" maxlength="1" data-answer="${partial2Str[i]}" onfocus="setFocus(this)">`;
+                    }
+                    html += `<span class="fixed-number">0</span>`;
+                    html += '</div>';
+                }
+                
+                html += '<div class="line"></div>';
+                html += '<div class="calc-row">';
+                const finalStr = final.toString();
+                for (let i = 0; i < finalStr.length; i++) {
+                    html += `<input type="text" class="calc-input" id="final_${i}" maxlength="1" data-answer="${finalStr[i]}" onfocus="setFocus(this)">`;
+                }
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            
+            document.getElementById('calcArea').innerHTML = html;
+            
+            setTimeout(() => {
+                const firstInput = document.querySelector('.calc-input');
+                if (firstInput) {
+                    firstInput.focus();
+                    gameState.currentFocus = firstInput;
+                }
+            }, 100);
+        }
+
+        function setFocus(element) {
+            gameState.currentFocus = element;
+            element.select();
+        }
+
+        function inputNumber(num) {
+            if (gameState.currentFocus) {
+                gameState.currentFocus.value = num;
+                gameState.currentFocus.classList.remove('correct', 'wrong');
+                moveToNext();
+            }
+        }
+
+        function moveToNext() {
+            if (!gameState.currentFocus) return;
+            
+            const allInputs = document.querySelectorAll('.calc-input');
+            const currentIndex = Array.from(allInputs).indexOf(gameState.currentFocus);
+            
+            if (currentIndex < allInputs.length - 1) {
+                allInputs[currentIndex + 1].focus();
+                gameState.currentFocus = allInputs[currentIndex + 1];
+            }
+        }
+
+        function deleteNumber() {
+            if (gameState.currentFocus) {
+                if (gameState.currentFocus.value === '') {
+                    const allInputs = document.querySelectorAll('.calc-input');
+                    const currentIndex = Array.from(allInputs).indexOf(gameState.currentFocus);
+                    if (currentIndex > 0) {
+                        allInputs[currentIndex - 1].focus();
+                        gameState.currentFocus = allInputs[currentIndex - 1];
+                    }
+                }
+                if (gameState.currentFocus) {
+                    gameState.currentFocus.value = '';
+                    gameState.currentFocus.classList.remove('correct', 'wrong');
+                }
+            }
+        }
+
+        function clearAll() {
+            document.querySelectorAll('.calc-input').forEach(input => {
+                input.value = '';
+                input.classList.remove('correct', 'wrong');
+            });
+            
+            const firstInput = document.querySelector('.calc-input');
+            if (firstInput) {
+                firstInput.focus();
+                gameState.currentFocus = firstInput;
+            }
+        }
+
+        function checkAnswer() {
+            let allCorrect = true;
+            const inputs = document.querySelectorAll('.calc-input');
+            
+            inputs.forEach(input => {
+                if (input.value === input.getAttribute('data-answer')) {
+                    input.classList.add('correct');
+                } else {
+                    input.classList.add('wrong');
+                    allCorrect = false;
+                }
+            });
+            
+            const feedback = document.getElementById('feedback');
+            
+            if (allCorrect) {
+                gameState.correctInLevel++;
+                gameState.problemsSolved++;
+                gameState.streak++;
+                
+                let points = 10;
+                if (gameState.streak >= 6) {
+                    points += 20;
+                } else if (gameState.streak >= 3) {
+                    points += 10;
+                }
+                gameState.score += points;
+                
+                feedback.textContent = getSuccessMessage();
+                feedback.className = 'feedback correct show';
+                
+                // Firebase에 활동 기록
+                addActivityLog({
+                    name: gameState.currentUser,
+                    class: gameState.currentClass,
+                    action: 'correct',
+                    level: gameState.currentLevel
+                });
+                
+                saveUserData();
+                
+                if (gameState.correctInLevel >= gameState.totalInLevel) {
+                    setTimeout(() => {
+                        gameState.currentLevel++;
+                        if (gameState.currentLevel > 10) {
+                            alert('🎊 모든 레벨을 완료했습니다! 축하합니다!');
+                            gameState.currentLevel = 10;
+                        }
+                        gameState.correctInLevel = 0;
+                        updateDisplay();
+                        newProblem();
+                    }, 1500);
+                } else {
+                    setTimeout(newProblem, 1500);
+                }
+            } else {
+                gameState.streak = 0;
+                gameState.problemsSolved++;
+                
+                feedback.textContent = '다시 계산해보세요! 💪';
+                feedback.className = 'feedback wrong show';
+                
+                // Firebase에 활동 기록
+                addActivityLog({
+                    name: gameState.currentUser,
+                    class: gameState.currentClass,
+                    action: 'wrong',
+                    level: gameState.currentLevel
+                });
+            }
+            
+            updateDisplay();
+        }
+
+        function skipProblem() {
+            gameState.streak = 0;
+            newProblem();
+        }
+
+        function showHint() {
+            const p = gameState.currentProblem;
+            if (!p) return;
+            
+            const feedback = document.getElementById('feedback');
+            const answer = p.num1 * p.num2;
+            
+            feedback.innerHTML = `💡 힌트: ${p.num1} × ${p.num2} = ${answer}`;
+            feedback.className = 'feedback show';
+            feedback.style.background = '#fef5e7';
+            feedback.style.color = '#f39c12';
+        }
+
+        function clearFeedback() {
+            const feedback = document.getElementById('feedback');
+            feedback.className = 'feedback';
+            feedback.textContent = '';
+        }
+
+        function getSuccessMessage() {
+            const messages = [
+                '완벽해요! 🎉', '정답! 👏', '훌륭해요! ⭐',
+                '대단해요! 💯', '천재예요! 🌟', '최고예요! 🏆'
+            ];
+            return messages[Math.floor(Math.random() * messages.length)];
+        }
+
+        function updateDisplay() {
+            document.getElementById('levelInfo').textContent = levels[gameState.currentLevel - 1].name;
+            document.getElementById('scoreDisplay').textContent = `🏆 ${gameState.score}점`;
+            
+            const progress = (gameState.correctInLevel / gameState.totalInLevel) * 100;
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = progress + '%';
+            progressFill.textContent = `${gameState.correctInLevel}/${gameState.totalInLevel}`;
+        }
+
+        // 키보드 이벤트
+        document.addEventListener('keydown', function(e) {
+            if (document.getElementById('gameScreen').classList.contains('active')) {
+                if (e.key >= '0' && e.key <= '9') {
+                    inputNumber(e.key);
+                } else if (e.key === 'Backspace') {
+                    deleteNumber();
+                } else if (e.key === 'Enter') {
+                    checkAnswer();
+                } else if (e.key === 'Escape') {
+                    clearAll();
+                }
+            }
+        });
+
+        // 입력 필드 자동 이동
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('calc-input')) {
+                if (e.target.value.length === 1) {
+                    moveToNext();
+                }
+            }
+        });
+
+        // 페이지 로드 시 초기화
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('🎯 곱셈 마스터 시스템 시작');
+            
+            // Firebase 초기화
+            if (initFirebase()) {
+                console.log('✅ Firebase 연결 성공');
+            } else {
+                console.log('⚠️ 오프라인 모드로 실행');
+            }
+        });
+    </script>
+</body>
+</html>
