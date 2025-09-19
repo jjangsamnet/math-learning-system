@@ -128,13 +128,13 @@
         // Firebase 설정 - 여기를 수정하세요!
         // ========================================
         const firebaseConfig = {
-            apiKey: "YOUR-API-KEY",
-            authDomain: "YOUR-PROJECT.firebaseapp.com",
-            databaseURL: "https://YOUR-PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "YOUR-PROJECT",
-            storageBucket: "YOUR-PROJECT.appspot.com",
-            messagingSenderId: "YOUR-SENDER-ID",
-            appId: "YOUR-APP-ID"
+          apiKey: "AIzaSyD5XcVm5JhET7DN0HjKzDzQPlD4WMVp1ak",
+          authDomain: "multiplication-practice-2024.firebaseapp.com",
+          projectId: "multiplication-practice-2024",
+          storageBucket: "multiplication-practice-2024.firebasestorage.app",
+          messagingSenderId: "168092521396",
+          appId: "1:168092521396:web:c7650dd861b7d9727e98e1",
+          measurementId: "G-L81KFNV87W"
         };
         
         // 전역 변수
@@ -166,7 +166,7 @@
         // 설정 표시
         function displayConfig() {
             const configDisplay = document.getElementById('config-display');
-            if (firebaseConfig.apiKey === "YOUR-API-KEY") {
+            if (firebaseConfig.apiKey === "AIzaSyD5XcVm5JhET7DN0HjKzDzQPlD4WMVp1ak") {
                 configDisplay.innerHTML = '⚠️ Firebase 설정이 필요합니다!\n\n실제 Firebase 프로젝트 설정으로 교체하세요.';
                 configDisplay.style.color = 'red';
             } else {
@@ -181,7 +181,7 @@
                 return;
             }
             
-            if (firebaseConfig.apiKey === "YOUR-API-KEY") {
+            if (firebaseConfig.apiKey === "AIzaSyD5XcVm5JhET7DN0HjKzDzQPlD4WMVp1ak") {
                 updateStatus('error', '⚠️ Firebase 설정을 먼저 해주세요!');
                 return;
             }
