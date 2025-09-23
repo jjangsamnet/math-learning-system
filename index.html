@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>곱셈 마스터 - 3학년 온라인 학습 시스템</title>
     
-    <!-- Firebase SDK v9 (더 안정적인 버전) -->
+    <!-- Firebase SDK v9 -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     
@@ -27,6 +27,141 @@
             justify-content: center;
             align-items: center;
             padding: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 애니메이션 효과 컨테이너 */
+        .animation-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* 꽃가루 효과 */
+        .petal {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ff69b4, #ffb6c1);
+            border-radius: 0 100% 0 100%;
+            animation: petalFall 4s linear;
+            opacity: 0.8;
+        }
+
+        @keyframes petalFall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* 비 효과 */
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            background: linear-gradient(transparent, rgba(255,255,255,0.8));
+            animation: rain 1s linear;
+        }
+
+        @keyframes rain {
+            0% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        /* 번개 효과 */
+        .lightning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.3);
+            animation: flash 0.3s;
+            pointer-events: none;
+            z-index: 10000;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.8; }
+        }
+
+        /* 연속 정답 표시 */
+        .streak-indicator {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 100;
+            display: none;
+            animation: bounceIn 0.5s;
+        }
+
+        .streak-indicator.show {
+            display: block;
+        }
+
+        .streak-indicator .streak-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #f39c12;
+            text-align: center;
+        }
+
+        .streak-indicator .streak-text {
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .streak-indicator .bonus-points {
+            color: #48bb78;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-top: 5px;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         /* 연결 상태 표시 */
@@ -559,6 +694,47 @@
             border-left: 4px solid #e53e3e;
         }
 
+        /* 반별 초기화 버튼 */
+        .reset-controls {
+            background: #fed7d7;
+            border: 2px solid #e53e3e;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .reset-controls h3 {
+            color: #742a2a;
+            margin-bottom: 15px;
+        }
+
+        .reset-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .reset-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: #c53030;
+            transform: translateY(-2px);
+        }
+
+        .reset-all-btn {
+            background: #742a2a;
+            flex: 1;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -605,6 +781,16 @@
     </style>
 </head>
 <body>
+    <!-- 애니메이션 컨테이너 -->
+    <div class="animation-container" id="animationContainer"></div>
+
+    <!-- 연속 정답 표시 -->
+    <div class="streak-indicator" id="streakIndicator">
+        <div class="streak-number" id="streakNumber">0</div>
+        <div class="streak-text">연속 정답!</div>
+        <div class="bonus-points" id="bonusPoints"></div>
+    </div>
+
     <!-- 연결 상태 표시 -->
     <div class="connection-status offline" id="connectionStatus">
         <span class="status-dot"></span>
@@ -732,6 +918,22 @@
                 </div>
             </div>
             
+            <!-- 반별 초기화 컨트롤 -->
+            <div class="reset-controls">
+                <h3>🗑️ 데이터 초기화</h3>
+                <div class="reset-buttons">
+                    <button class="reset-btn" onclick="resetClassData(1)">1반 초기화</button>
+                    <button class="reset-btn" onclick="resetClassData(2)">2반 초기화</button>
+                    <button class="reset-btn" onclick="resetClassData(3)">3반 초기화</button>
+                    <button class="reset-btn" onclick="resetClassData(4)">4반 초기화</button>
+                    <button class="reset-btn" onclick="resetClassData(5)">5반 초기화</button>
+                    <button class="reset-btn" onclick="resetClassData(6)">6반 초기화</button>
+                    <button class="reset-btn" onclick="resetClassData(7)">7반 초기화</button>
+                    <button class="reset-btn" onclick="resetClassData(8)">8반 초기화</button>
+                    <button class="reset-btn reset-all-btn" onclick="resetAllData()">⚠️ 전체 초기화</button>
+                </div>
+            </div>
+            
             <!-- 전체 요약 정보 -->
             <div id="summaryInfo" style="background: #edf2f7; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
                 <!-- 요약 정보가 여기에 동적으로 생성됩니다 -->
@@ -753,14 +955,13 @@
 
     <script>
         // ======================================
-        // Firebase 설정 - 수정됨!
+        // Firebase 설정
         // ======================================
         
-        // Firebase 설정 객체 (databaseURL 추가)
         const firebaseConfig = {
             apiKey: "AIzaSyD5XcVm5JhET7DN0HjKzDzQPlD4WMVp1ak",
             authDomain: "multiplication-practice-2024.firebaseapp.com",
-            databaseURL: "https://multiplication-practice-2024-default-rtdb.asia-southeast1.firebasedatabase.app", // ⭐ 이 줄이 추가됨!
+            databaseURL: "https://multiplication-practice-2024-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "multiplication-practice-2024",
             storageBucket: "multiplication-practice-2024.firebasestorage.app",
             messagingSenderId: "168092521396",
@@ -776,12 +977,8 @@
         function initFirebase() {
             console.log('Firebase 초기화 시도...');
             
-            // Firebase SDK 로드 확인
             if (typeof firebase === 'undefined') {
                 console.error('❌ Firebase SDK가 로드되지 않았습니다.');
-                console.log('인터넷 연결을 확인하거나 페이지를 새로고침 해주세요.');
-                
-                // 오프라인 모드로 작동
                 const statusElement = document.getElementById('connectionStatus');
                 const statusText = document.getElementById('statusText');
                 if (statusElement && statusText) {
@@ -792,18 +989,13 @@
             }
             
             try {
-                // Firebase 초기화
                 if (!firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
                     console.log('✅ Firebase 앱 초기화 성공');
-                } else {
-                    console.log('✅ Firebase 이미 초기화됨');
                 }
                 
-                // Database 참조 가져오기
                 database = firebase.database();
                 
-                // 연결 상태 모니터링
                 const connectedRef = database.ref(".info/connected");
                 connectedRef.on("value", (snap) => {
                     const statusElement = document.getElementById('connectionStatus');
@@ -830,16 +1022,12 @@
                 
             } catch (error) {
                 console.error('❌ Firebase 초기화 실패:', error);
-                console.error('상세 에러:', error.message);
-                
-                // 오프라인 모드로 작동
                 const statusElement = document.getElementById('connectionStatus');
                 const statusText = document.getElementById('statusText');
                 if (statusElement && statusText) {
                     statusElement.className = 'connection-status offline';
                     statusText.textContent = '오프라인 모드';
                 }
-                
                 return false;
             }
         }
@@ -853,6 +1041,7 @@
             currentLevel: 1,
             score: 0,
             streak: 0,
+            consecutiveCount: 0, // 3개씩 연속 정답 카운트
             problemsSolved: 0,
             correctInLevel: 0,
             totalInLevel: 10,
@@ -875,6 +1064,92 @@
         ];
 
         // ======================================
+        // 애니메이션 효과
+        // ======================================
+        
+        // 꽃가루 효과
+        function createPetalEffect() {
+            const container = document.getElementById('animationContainer');
+            
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const petal = document.createElement('div');
+                    petal.className = 'petal';
+                    petal.style.left = Math.random() * 100 + '%';
+                    petal.style.animationDelay = Math.random() * 2 + 's';
+                    petal.style.animationDuration = (3 + Math.random() * 2) + 's';
+                    
+                    // 다양한 색상
+                    const colors = [
+                        'radial-gradient(circle, #ff69b4, #ffb6c1)',
+                        'radial-gradient(circle, #ffd700, #ffeb3b)',
+                        'radial-gradient(circle, #ff6347, #ff7f50)',
+                        'radial-gradient(circle, #dda0dd, #ee82ee)',
+                        'radial-gradient(circle, #87ceeb, #87cefa)'
+                    ];
+                    petal.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    container.appendChild(petal);
+                    
+                    setTimeout(() => {
+                        petal.remove();
+                    }, 5000);
+                }, i * 100);
+            }
+        }
+        
+        // 비 효과
+        function createRainEffect() {
+            const container = document.getElementById('animationContainer');
+            
+            // 번개 효과
+            const lightning = document.createElement('div');
+            lightning.className = 'lightning';
+            container.appendChild(lightning);
+            setTimeout(() => lightning.remove(), 300);
+            
+            // 빗줄기
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const raindrop = document.createElement('div');
+                    raindrop.className = 'raindrop';
+                    raindrop.style.left = Math.random() * 100 + '%';
+                    raindrop.style.height = (20 + Math.random() * 60) + 'px';
+                    raindrop.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
+                    raindrop.style.animationDelay = Math.random() * 0.5 + 's';
+                    
+                    container.appendChild(raindrop);
+                    
+                    setTimeout(() => {
+                        raindrop.remove();
+                    }, 2000);
+                }, i * 30);
+            }
+        }
+        
+        // 연속 정답 표시
+        function showStreakIndicator() {
+            const indicator = document.getElementById('streakIndicator');
+            const streakNumber = document.getElementById('streakNumber');
+            const bonusPoints = document.getElementById('bonusPoints');
+            
+            streakNumber.textContent = gameState.streak;
+            
+            if (gameState.consecutiveCount % 3 === 0 && gameState.consecutiveCount > 0) {
+                bonusPoints.textContent = '+30 보너스 점수!';
+                bonusPoints.style.display = 'block';
+            } else {
+                bonusPoints.style.display = 'none';
+            }
+            
+            indicator.classList.add('show');
+            
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 3000);
+        }
+
+        // ======================================
         // Firebase 데이터 관리 함수들
         // ======================================
         
@@ -890,11 +1165,9 @@
                 lastPlayed: Date.now()
             };
             
-            // 개별 학생 데이터 저장
             const userPath = `students/class${gameState.currentClass}/${gameState.currentUser}`;
             database.ref(userPath).set(userData);
             
-            // 전체 학생 리스트 업데이트
             const allStudentsPath = `allStudents/${gameState.currentClass}_${gameState.currentUser}`;
             database.ref(allStudentsPath).set(userData);
         }
@@ -919,7 +1192,6 @@
             
             database.ref('activities').push(activityData);
             
-            // 100개 이상이면 오래된 것 삭제
             database.ref('activities').once('value', snapshot => {
                 const count = snapshot.numChildren();
                 if (count > 100) {
@@ -933,6 +1205,62 @@
                     });
                 }
             });
+        }
+
+        // 반별 데이터 초기화
+        function resetClassData(classNum) {
+            if (!database) return;
+            
+            const confirmMsg = `정말로 ${classNum}반의 모든 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`;
+            if (!confirm(confirmMsg)) return;
+            
+            // 해당 반 데이터 삭제
+            database.ref(`students/class${classNum}`).remove();
+            
+            // 전체 학생 리스트에서 해당 반 학생 삭제
+            database.ref('allStudents').once('value', snapshot => {
+                snapshot.forEach(child => {
+                    const student = child.val();
+                    if (student.class == classNum) {
+                        child.ref.remove();
+                    }
+                });
+            });
+            
+            // 해당 반 활동 로그 삭제
+            database.ref('activities').once('value', snapshot => {
+                snapshot.forEach(child => {
+                    const activity = child.val();
+                    if (activity.class == classNum) {
+                        child.ref.remove();
+                    }
+                });
+            });
+            
+            alert(`${classNum}반 데이터가 초기화되었습니다.`);
+            updateMonitor();
+        }
+        
+        // 전체 데이터 초기화
+        function resetAllData() {
+            if (!database) return;
+            
+            const confirmMsg = `⚠️ 주의!\n\n정말로 모든 데이터를 삭제하시겠습니까?\n모든 학생의 기록이 삭제됩니다.\n\n이 작업은 되돌릴 수 없습니다.`;
+            if (!confirm(confirmMsg)) return;
+            
+            const doubleConfirm = prompt('정말로 삭제하려면 "전체삭제"를 입력하세요:');
+            if (doubleConfirm !== '전체삭제') {
+                alert('취소되었습니다.');
+                return;
+            }
+            
+            // 모든 데이터 삭제
+            database.ref('students').remove();
+            database.ref('allStudents').remove();
+            database.ref('activities').remove();
+            
+            alert('모든 데이터가 초기화되었습니다.');
+            updateMonitor();
         }
 
         // ======================================
@@ -963,16 +1291,14 @@
             gameState.currentUser = name;
             console.log('로그인 정보:', gameState.currentClass + '반', name);
             
-            // Firebase에서 기존 데이터 로드
             if (database) {
                 loadUserData(gameState.currentClass, name).then(savedData => {
                     if (savedData) {
-                        gameState.currentLevel = savedData.level;
-                        gameState.score = savedData.score;
+                        gameState.currentLevel = savedData.level || 1;
+                        gameState.score = savedData.score || 0;
                         console.log('기존 데이터 로드:', savedData);
                     }
                     
-                    // 로그인 활동 기록
                     addActivityLog({
                         name: name,
                         class: gameState.currentClass,
@@ -984,10 +1310,9 @@
                     showGameScreen();
                 }).catch(error => {
                     console.error('데이터 로드 에러:', error);
-                    showGameScreen(); // 에러가 있어도 게임 시작
+                    showGameScreen();
                 });
             } else {
-                // 오프라인 모드
                 console.log('오프라인 모드로 게임 시작');
                 showGameScreen();
             }
@@ -1036,7 +1361,6 @@
             document.getElementById('gameScreen').classList.remove('active');
             document.getElementById('monitorScreen').classList.add('active');
             
-            // 실시간 모니터링 시작
             startRealtimeMonitoring();
         }
 
@@ -1045,7 +1369,6 @@
                 saveUserData();
             }
             
-            // 모니터링 중지
             stopRealtimeMonitoring();
             
             gameState.currentUser = null;
@@ -1053,6 +1376,7 @@
             gameState.currentLevel = 1;
             gameState.score = 0;
             gameState.streak = 0;
+            gameState.consecutiveCount = 0;
             
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('gameScreen').style.display = 'none';
@@ -1079,10 +1403,8 @@
                 return;
             }
             
-            // 기존 리스너 제거
             stopRealtimeMonitoring();
             
-            // 전체 학생 데이터 실시간 감시
             const studentsRef = database.ref('allStudents');
             studentsRef.on('value', snapshot => {
                 const students = [];
@@ -1093,7 +1415,6 @@
             });
             monitoringRefs.push(studentsRef);
             
-            // 활동 로그 실시간 감시
             const activitiesRef = database.ref('activities').limitToLast(50);
             activitiesRef.on('value', snapshot => {
                 const activities = [];
@@ -1142,16 +1463,10 @@
                 filteredActivities = activities.filter(a => String(a.class) === String(selectedClass));
             }
             
-            // 랭킹 업데이트
             updateRanking(filteredStudents, selectedClass);
-            
-            // 활동 로그 업데이트
             updateActivityLog(filteredActivities, selectedClass);
-            
-            // 요약 정보 업데이트
             updateSummaryInfo(filteredStudents, filteredActivities, selectedClass);
             
-            // 갱신 시간 표시
             document.getElementById('refreshTime').textContent = 
                 `마지막 갱신: ${new Date().toLocaleTimeString('ko-KR')}`;
         }
@@ -1440,20 +1755,33 @@
             const feedback = document.getElementById('feedback');
             
             if (allCorrect) {
+                // 정답 처리
                 gameState.correctInLevel++;
                 gameState.problemsSolved++;
                 gameState.streak++;
+                gameState.consecutiveCount++;
                 
+                // 기본 점수 10점
                 let points = 10;
-                if (gameState.streak >= 6) {
-                    points += 20;
-                } else if (gameState.streak >= 3) {
-                    points += 10;
-                }
-                gameState.score += points;
                 
-                feedback.textContent = getSuccessMessage();
+                // 3개 연속 정답마다 30점 추가
+                if (gameState.consecutiveCount % 3 === 0) {
+                    points += 30;
+                    feedback.textContent = `🎉 ${getSuccessMessage()} +${points}점 (3연속 보너스!)`;
+                } else {
+                    feedback.textContent = `${getSuccessMessage()} +${points}점`;
+                }
+                
+                gameState.score += points;
                 feedback.className = 'feedback correct show';
+                
+                // 꽃가루 효과
+                createPetalEffect();
+                
+                // 연속 정답 표시
+                if (gameState.streak > 0) {
+                    showStreakIndicator();
+                }
                 
                 // Firebase에 활동 기록
                 addActivityLog({
@@ -1480,11 +1808,27 @@
                     setTimeout(newProblem, 1500);
                 }
             } else {
+                // 오답 처리
                 gameState.streak = 0;
+                gameState.consecutiveCount = 0;
                 gameState.problemsSolved++;
                 
-                feedback.textContent = '다시 계산해보세요! 💪';
+                // 50점 감점
+                gameState.score = Math.max(0, gameState.score - 50);
+                
+                // 레벨 다운
+                if (gameState.currentLevel > 1) {
+                    gameState.currentLevel--;
+                    gameState.correctInLevel = 0;
+                    feedback.textContent = `❌ 틀렸어요! -50점, Level ${gameState.currentLevel}로 내려갑니다`;
+                } else {
+                    feedback.textContent = '❌ 틀렸어요! -50점, 다시 도전해보세요! 💪';
+                }
+                
                 feedback.className = 'feedback wrong show';
+                
+                // 비 효과
+                createRainEffect();
                 
                 // Firebase에 활동 기록
                 addActivityLog({
@@ -1493,6 +1837,8 @@
                     action: 'wrong',
                     level: gameState.currentLevel
                 });
+                
+                saveUserData();
             }
             
             updateDisplay();
@@ -1500,6 +1846,7 @@
 
         function skipProblem() {
             gameState.streak = 0;
+            gameState.consecutiveCount = 0;
             newProblem();
         }
 
@@ -1525,7 +1872,8 @@
         function getSuccessMessage() {
             const messages = [
                 '완벽해요! 🎉', '정답! 👏', '훌륭해요! ⭐',
-                '대단해요! 💯', '천재예요! 🌟', '최고예요! 🏆'
+                '대단해요! 💯', '천재예요! 🌟', '최고예요! 🏆',
+                '잘했어요! 🎯', '멋져요! 🚀', '굉장해요! 🌈'
             ];
             return messages[Math.floor(Math.random() * messages.length)];
         }
@@ -1568,7 +1916,6 @@
         window.addEventListener('DOMContentLoaded', function() {
             console.log('🎯 곱셈 마스터 시스템 시작');
             
-            // Firebase SDK 로드 대기 후 초기화 (1초 후)
             setTimeout(function() {
                 console.log('Firebase SDK 확인 중...');
                 
@@ -1590,7 +1937,7 @@
                         statusText.textContent = '오프라인 모드';
                     }
                 }
-            }, 1500); // 1.5초 대기
+            }, 1500);
         });
     </script>
 </body>
