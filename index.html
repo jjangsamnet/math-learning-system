@@ -266,6 +266,22 @@
             box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
         }
 
+        .form-input.error {
+            border-color: #e53e3e;
+            background: #fff5f5;
+        }
+
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
         .class-selector {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -307,6 +323,12 @@
             transform: translateY(-2px);
         }
 
+        .login-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .teacher-login-btn {
             width: 100%;
             margin-top: 15px;
@@ -326,7 +348,7 @@
             transform: translateY(-2px);
         }
 
-        /* 게임 화면 */
+        /* 게임 화면 스타일 (이전과 동일) */
         .game-container {
             background: white;
             border-radius: 20px;
@@ -735,6 +757,73 @@
             flex: 1;
         }
 
+        /* 접근 코드 관리 패널 */
+        .access-code-panel {
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .access-code-panel h3 {
+            color: #22543d;
+            margin-bottom: 15px;
+        }
+
+        .code-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .code-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .code-item label {
+            display: block;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 1em;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        .code-input:focus {
+            border-color: #48bb78;
+            outline: none;
+        }
+
+        .save-codes-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .save-codes-btn:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -777,6 +866,10 @@
             .monitor-grid {
                 grid-template-columns: 1fr;
             }
+
+            .code-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
@@ -816,6 +909,12 @@
                         <button class="class-btn" onclick="selectClass(7, this)">7반</button>
                         <button class="class-btn" onclick="selectClass(8, this)">8반</button>
                     </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">반 접근 코드</label>
+                    <input type="password" id="classCode" class="form-input" placeholder="접근 코드를 입력하세요" maxlength="6">
+                    <div class="error-message" id="codeError">접근 코드가 올바르지 않습니다.</div>
                 </div>
                 
                 <div class="form-group">
@@ -915,6 +1014,49 @@
                     </div>
                     <span class="refresh-time" id="refreshTime"></span>
                     <button class="logout-btn" onclick="logout()">로그아웃</button>
+                </div>
+            </div>
+            
+            <!-- 접근 코드 관리 -->
+            <div class="access-code-panel">
+                <h3>🔑 반별 접근 코드 관리</h3>
+                <div class="code-grid">
+                    <div class="code-item">
+                        <label>1반</label>
+                        <input type="text" class="code-input" id="code1" maxlength="6" placeholder="코드">
+                    </div>
+                    <div class="code-item">
+                        <label>2반</label>
+                        <input type="text" class="code-input" id="code2" maxlength="6" placeholder="코드">
+                    </div>
+                    <div class="code-item">
+                        <label>3반</label>
+                        <input type="text" class="code-input" id="code3" maxlength="6" placeholder="코드">
+                    </div>
+                    <div class="code-item">
+                        <label>4반</label>
+                        <input type="text" class="code-input" id="code4" maxlength="6" placeholder="코드">
+                    </div>
+                    <div class="code-item">
+                        <label>5반</label>
+                        <input type="text" class="code-input" id="code5" maxlength="6" placeholder="코드">
+                    </div>
+                    <div class="code-item">
+                        <label>6반</label>
+                        <input type="text" class="code-input" id="code6" maxlength="6" placeholder="코드">
+                    </div>
+                    <div class="code-item">
+                        <label>7반</label>
+                        <input type="text" class="code-input" id="code7" maxlength="6" placeholder="코드">
+                    </div>
+                    <div class="code-item">
+                        <label>8반</label>
+                        <input type="text" class="code-input" id="code8" maxlength="6" placeholder="코드">
+                    </div>
+                </div>
+                <button class="save-codes-btn" onclick="saveAccessCodes()">💾 코드 저장하기</button>
+                <div style="margin-top: 10px; color: #718096; font-size: 0.9em;">
+                    ⚠️ 4-6자리 숫자를 권장합니다. 빈칸으로 두면 해당 반은 코드 없이 접속 가능합니다.
                 </div>
             </div>
             
@@ -1018,6 +1160,9 @@
                     }
                 });
                 
+                // 접근 코드 초기 설정 확인
+                initializeAccessCodes();
+                
                 return true;
                 
             } catch (error) {
@@ -1033,6 +1178,91 @@
         }
 
         // ======================================
+        // 접근 코드 관리
+        // ======================================
+        
+        // 접근 코드 초기화 (처음 실행 시)
+        function initializeAccessCodes() {
+            if (!database) return;
+            
+            database.ref('accessCodes').once('value', snapshot => {
+                if (!snapshot.exists()) {
+                    // 기본 코드 설정
+                    const defaultCodes = {
+                        class1: '1111',
+                        class2: '2222',
+                        class3: '3333',
+                        class4: '4444',
+                        class5: '5555',
+                        class6: '6666',
+                        class7: '7777',
+                        class8: '8888'
+                    };
+                    database.ref('accessCodes').set(defaultCodes);
+                    console.log('기본 접근 코드 설정 완료');
+                }
+            });
+        }
+        
+        // 접근 코드 저장
+        function saveAccessCodes() {
+            if (!database) {
+                alert('Firebase 연결이 필요합니다.');
+                return;
+            }
+            
+            const codes = {};
+            for (let i = 1; i <= 8; i++) {
+                const codeInput = document.getElementById(`code${i}`);
+                if (codeInput && codeInput.value.trim()) {
+                    codes[`class${i}`] = codeInput.value.trim();
+                }
+            }
+            
+            database.ref('accessCodes').update(codes).then(() => {
+                alert('접근 코드가 저장되었습니다.');
+            }).catch(error => {
+                alert('코드 저장 실패: ' + error.message);
+            });
+        }
+        
+        // 접근 코드 불러오기 (교사 화면)
+        function loadAccessCodes() {
+            if (!database) return;
+            
+            database.ref('accessCodes').once('value', snapshot => {
+                const codes = snapshot.val() || {};
+                for (let i = 1; i <= 8; i++) {
+                    const codeInput = document.getElementById(`code${i}`);
+                    if (codeInput) {
+                        codeInput.value = codes[`class${i}`] || '';
+                    }
+                }
+            });
+        }
+        
+        // 접근 코드 확인
+        function verifyAccessCode(classNum, inputCode) {
+            return new Promise((resolve, reject) => {
+                if (!database) {
+                    // 오프라인 모드에서는 항상 통과
+                    resolve(true);
+                    return;
+                }
+                
+                database.ref(`accessCodes/class${classNum}`).once('value', snapshot => {
+                    const correctCode = snapshot.val();
+                    if (!correctCode || correctCode === '') {
+                        // 코드가 설정되지 않은 경우 통과
+                        resolve(true);
+                    } else {
+                        resolve(inputCode === correctCode);
+                    }
+                });
+            });
+        }
+
+        // ======================================
         // 전역 상태 관리
         // ======================================
         const gameState = {
@@ -1041,7 +1271,7 @@
             currentLevel: 1,
             score: 0,
             streak: 0,
-            consecutiveCount: 0, // 3개씩 연속 정답 카운트
+            consecutiveCount: 0,
             problemsSolved: 0,
             correctInLevel: 0,
             totalInLevel: 10,
@@ -1079,7 +1309,6 @@
                     petal.style.animationDelay = Math.random() * 2 + 's';
                     petal.style.animationDuration = (3 + Math.random() * 2) + 's';
                     
-                    // 다양한 색상
                     const colors = [
                         'radial-gradient(circle, #ff69b4, #ffb6c1)',
                         'radial-gradient(circle, #ffd700, #ffeb3b)',
@@ -1102,13 +1331,11 @@
         function createRainEffect() {
             const container = document.getElementById('animationContainer');
             
-            // 번개 효과
             const lightning = document.createElement('div');
             lightning.className = 'lightning';
             container.appendChild(lightning);
             setTimeout(() => lightning.remove(), 300);
             
-            // 빗줄기
             for (let i = 0; i < 50; i++) {
                 setTimeout(() => {
                     const raindrop = document.createElement('div');
@@ -1214,10 +1441,8 @@
             const confirmMsg = `정말로 ${classNum}반의 모든 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`;
             if (!confirm(confirmMsg)) return;
             
-            // 해당 반 데이터 삭제
             database.ref(`students/class${classNum}`).remove();
             
-            // 전체 학생 리스트에서 해당 반 학생 삭제
             database.ref('allStudents').once('value', snapshot => {
                 snapshot.forEach(child => {
                     const student = child.val();
@@ -1227,7 +1452,6 @@
                 });
             });
             
-            // 해당 반 활동 로그 삭제
             database.ref('activities').once('value', snapshot => {
                 snapshot.forEach(child => {
                     const activity = child.val();
@@ -1254,7 +1478,6 @@
                 return;
             }
             
-            // 모든 데이터 삭제
             database.ref('students').remove();
             database.ref('allStudents').remove();
             database.ref('activities').remove();
@@ -1274,20 +1497,48 @@
             button.classList.add('selected');
             gameState.currentClass = classNum;
             console.log('선택된 반:', classNum);
+            
+            // 코드 입력란 초기화
+            const codeInput = document.getElementById('classCode');
+            const codeError = document.getElementById('codeError');
+            codeInput.value = '';
+            codeInput.classList.remove('error');
+            codeError.classList.remove('show');
         }
 
-        function studentLogin() {
+        async function studentLogin() {
             console.log('로그인 시도...');
+            
             const name = document.getElementById('studentName').value.trim();
-            if (!name) {
-                alert('이름을 입력해주세요!');
-                return;
-            }
+            const code = document.getElementById('classCode').value.trim();
+            const codeError = document.getElementById('codeError');
+            const codeInput = document.getElementById('classCode');
+            
+            // 입력 검증
             if (!gameState.currentClass) {
                 alert('반을 선택해주세요!');
                 return;
             }
-
+            
+            if (!name) {
+                alert('이름을 입력해주세요!');
+                return;
+            }
+            
+            // 접근 코드 확인
+            const isCodeValid = await verifyAccessCode(gameState.currentClass, code);
+            
+            if (!isCodeValid) {
+                codeInput.classList.add('error');
+                codeError.classList.add('show');
+                codeInput.focus();
+                return;
+            }
+            
+            // 로그인 성공
+            codeInput.classList.remove('error');
+            codeError.classList.remove('show');
+            
             gameState.currentUser = name;
             console.log('로그인 정보:', gameState.currentClass + '반', name);
             
@@ -1361,6 +1612,7 @@
             document.getElementById('gameScreen').classList.remove('active');
             document.getElementById('monitorScreen').classList.add('active');
             
+            loadAccessCodes(); // 접근 코드 불러오기
             startRealtimeMonitoring();
         }
 
@@ -1387,6 +1639,7 @@
             document.getElementById('monitorScreen').classList.remove('active');
             
             document.getElementById('studentName').value = '';
+            document.getElementById('classCode').value = '';
             document.querySelectorAll('.class-btn').forEach(btn => {
                 btn.classList.remove('selected');
             });
@@ -1567,7 +1820,7 @@
         }
 
         // ======================================
-        // 게임 로직
+        // 게임 로직 (이전과 동일)
         // ======================================
         
         function generateProblem() {
@@ -1761,10 +2014,8 @@
                 gameState.streak++;
                 gameState.consecutiveCount++;
                 
-                // 기본 점수 10점
                 let points = 10;
                 
-                // 3개 연속 정답마다 30점 추가
                 if (gameState.consecutiveCount % 3 === 0) {
                     points += 30;
                     feedback.textContent = `🎉 ${getSuccessMessage()} +${points}점 (3연속 보너스!)`;
@@ -1775,15 +2026,12 @@
                 gameState.score += points;
                 feedback.className = 'feedback correct show';
                 
-                // 꽃가루 효과
                 createPetalEffect();
                 
-                // 연속 정답 표시
                 if (gameState.streak > 0) {
                     showStreakIndicator();
                 }
                 
-                // Firebase에 활동 기록
                 addActivityLog({
                     name: gameState.currentUser,
                     class: gameState.currentClass,
@@ -1813,10 +2061,8 @@
                 gameState.consecutiveCount = 0;
                 gameState.problemsSolved++;
                 
-                // 50점 감점
                 gameState.score = Math.max(0, gameState.score - 50);
                 
-                // 레벨 다운
                 if (gameState.currentLevel > 1) {
                     gameState.currentLevel--;
                     gameState.correctInLevel = 0;
@@ -1827,10 +2073,8 @@
                 
                 feedback.className = 'feedback wrong show';
                 
-                // 비 효과
                 createRainEffect();
                 
-                // Firebase에 활동 기록
                 addActivityLog({
                     name: gameState.currentUser,
                     class: gameState.currentClass,
