@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>곱셈 마스터 v2.0 - 3학년 온라인 학습 시스템</title>
+    <title>곱셈 마스터 v3.0 - 3학년 온라인 학습 시스템</title>
     
     <!-- Firebase SDK v9 -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -19,16 +19,16 @@
             user-select: none;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            position: relative;
-            overflow: hidden;
+            padding: 20px;
+            background-attachment: fixed;
         }
 
         /* 디버그 패널 */
@@ -265,6 +265,8 @@
             display: none;
             width: 100%;
             max-width: 900px;
+            margin: 0 auto;
+            padding: 20px 0;
         }
 
         .screen.active {
@@ -279,6 +281,7 @@
             padding: 40px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
+            margin-top: 40px;
         }
 
         .login-title {
@@ -294,7 +297,7 @@
         }
 
         .version-info {
-            position: absolute;
+            position: fixed;
             top: 10px;
             left: 10px;
             background: rgba(255, 255, 255, 0.9);
@@ -947,8 +950,7 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-width: 1200px;
             width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
+            margin: 0 auto;
         }
 
         .public-monitor-header {
@@ -967,6 +969,18 @@
             color: #718096;
         }
 
+        .class-filter-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
         .public-ranking-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -979,6 +993,8 @@
             border-radius: 20px;
             padding: 25px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-height: 500px;
+            overflow-y: auto;
         }
 
         .public-panel-title {
@@ -1003,6 +1019,11 @@
         .public-rank-item:hover {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .public-rank-item.highlight {
+            background: linear-gradient(135deg, #fef5e7, #fff9e6);
+            border: 2px solid #f39c12;
         }
 
         .public-rank-number {
@@ -1086,6 +1107,15 @@
             margin-top: 10px;
         }
 
+        /* 반별 상세 랭킹 패널 */
+        .class-detail-panel {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
         .home-btn {
             position: fixed;
             bottom: 20px;
@@ -1100,6 +1130,7 @@
             font-weight: bold;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
             transition: all 0.3s;
+            z-index: 100;
         }
 
         .home-btn:hover {
@@ -1136,6 +1167,10 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
             .main-content {
                 flex-direction: column;
             }
@@ -1165,12 +1200,27 @@
             .game-header {
                 justify-content: center;
             }
+
+            .login-container {
+                padding: 20px;
+            }
+
+            .login-title {
+                font-size: 2em;
+            }
+
+            .home-btn {
+                bottom: 10px;
+                right: 10px;
+                padding: 12px 20px;
+                font-size: 1em;
+            }
         }
     </style>
 </head>
 <body>
     <!-- 버전 정보 -->
-    <div class="version-info">v2.0 - 안정성 개선</div>
+    <div class="version-info">v3.0 - 스크롤 및 랭킹 개선</div>
 
     <!-- 디버그 패널 -->
     <div class="debug-panel" id="debugPanel">
@@ -1323,22 +1373,41 @@
                 <p class="public-monitor-subtitle">3학년 전체 순위</p>
             </div>
 
+            <!-- 반별 필터 섹션 -->
+            <div class="class-filter-section">
+                <label style="color: #5a67d8; font-weight: bold;">보기 선택:</label>
+                <select id="publicClassFilter" onchange="updatePublicFilter()" 
+                        style="padding: 10px 20px; border: 2px solid #5a67d8; border-radius: 8px; 
+                               font-size: 1.1em; cursor: pointer; background: white;">
+                    <option value="all">🏫 전체 보기</option>
+                    <option value="1">1반</option>
+                    <option value="2">2반</option>
+                    <option value="3">3반</option>
+                    <option value="4">4반</option>
+                    <option value="5">5반</option>
+                    <option value="6">6반</option>
+                    <option value="7">7반</option>
+                    <option value="8">8반</option>
+                </select>
+                <span id="currentUserInfo" style="color: #718096; font-weight: bold;"></span>
+            </div>
+
             <div class="public-stats" id="publicStats">
                 <!-- 통계 정보가 동적으로 생성됩니다 -->
             </div>
 
             <div class="public-ranking-grid">
                 <div class="public-ranking-panel">
-                    <h2 class="public-panel-title">🥇 전체 TOP 10</h2>
+                    <h2 class="public-panel-title" id="mainRankingTitle">🥇 전체 TOP 10</h2>
                     <div id="publicOverallRanking">
-                        <!-- 전체 랭킹이 동적으로 생성됩니다 -->
+                        <!-- 전체 또는 반별 랭킹이 동적으로 생성됩니다 -->
                     </div>
                 </div>
 
                 <div class="public-ranking-panel">
-                    <h2 class="public-panel-title">🌟 반별 1위</h2>
+                    <h2 class="public-panel-title" id="subRankingTitle">🌟 반별 1위</h2>
                     <div id="publicClassRanking">
-                        <!-- 반별 1위가 동적으로 생성됩니다 -->
+                        <!-- 반별 1위 또는 나의 순위가 동적으로 생성됩니다 -->
                     </div>
                 </div>
             </div>
@@ -2203,12 +2272,13 @@
         }
 
         function showPublicMonitor() {
+            // 현재 화면 저장
             if (document.getElementById('loginScreen').classList.contains('active')) {
                 gameState.previousScreen = 'login';
             } else if (document.getElementById('gameScreen').classList.contains('active')) {
                 gameState.previousScreen = 'game';
                 if (gameState.currentUser) {
-                    saveUserData();
+                    saveUserData(); // 게임 중이면 데이터 저장
                 }
             }
             
@@ -2221,6 +2291,16 @@
             document.getElementById('gameScreen').classList.remove('active');
             document.getElementById('monitorScreen').classList.remove('active');
             document.getElementById('publicMonitorScreen').classList.add('active');
+            
+            // 현재 사용자 정보 표시
+            const userInfo = document.getElementById('currentUserInfo');
+            if (gameState.currentUser && gameState.currentClass) {
+                userInfo.textContent = `(나: ${gameState.currentClass}반 ${gameState.currentUser})`;
+                // 자기 반 자동 선택
+                document.getElementById('publicClassFilter').value = gameState.currentClass;
+            } else {
+                userInfo.textContent = '';
+            }
             
             startPublicMonitoring();
         }
@@ -2283,10 +2363,11 @@
         }
 
         // ======================================
-        // 공개 모니터링 관련 함수
+        // 공개 모니터링 관련 함수 (개선됨)
         // ======================================
         let publicMonitoringRef = null;
         let publicMonitoringInterval = null;
+        let cachedPublicStudents = [];
 
         function startPublicMonitoring() {
             if (!database) {
@@ -2297,11 +2378,20 @@
             stopPublicMonitoring();
             
             publicMonitoringRef = database.ref('allStudents');
-            publicMonitoringRef.on('value', updatePublicMonitor);
+            publicMonitoringRef.on('value', snapshot => {
+                const students = [];
+                if (snapshot) {
+                    snapshot.forEach(child => {
+                        students.push(child.val());
+                    });
+                }
+                cachedPublicStudents = students;
+                updatePublicMonitor();
+            });
             
             publicMonitoringInterval = setInterval(() => {
                 if (database) {
-                    database.ref('allStudents').once('value', updatePublicMonitor);
+                    updatePublicMonitor();
                 }
             }, 5000);
         }
@@ -2317,20 +2407,38 @@
             }
         }
 
-        function updatePublicMonitor(snapshot) {
-            const students = [];
-            if (snapshot) {
-                snapshot.forEach(child => {
-                    students.push(child.val());
-                });
-            }
-            
-            updatePublicStats(students);
-            updatePublicOverallRanking(students);
-            updatePublicClassRanking(students);
+        function updatePublicFilter() {
+            updatePublicMonitor();
         }
 
-        function updatePublicStats(students) {
+        function updatePublicMonitor() {
+            const filter = document.getElementById('publicClassFilter').value;
+            let students = [...cachedPublicStudents];
+            
+            // 필터링
+            if (filter !== 'all') {
+                students = students.filter(s => String(s.class) === filter);
+            }
+            
+            // 통계 업데이트
+            updatePublicStats(students, filter);
+            
+            if (filter === 'all') {
+                // 전체 보기
+                updatePublicOverallRanking(students);
+                updatePublicClassTop(cachedPublicStudents);
+                document.getElementById('mainRankingTitle').textContent = '🥇 전체 TOP 10';
+                document.getElementById('subRankingTitle').textContent = '🌟 반별 1위';
+            } else {
+                // 반별 보기
+                updateClassDetailRanking(students, filter);
+                updateMyRankInClass(students, filter);
+                document.getElementById('mainRankingTitle').textContent = `📚 ${filter}반 전체 랭킹`;
+                document.getElementById('subRankingTitle').textContent = '📍 나의 순위';
+            }
+        }
+
+        function updatePublicStats(students, filter) {
             const container = document.getElementById('publicStats');
             
             const totalStudents = students.length;
@@ -2338,10 +2446,12 @@
             const averageScore = totalStudents > 0 ? Math.round(totalScore / totalStudents) : 0;
             const maxLevel = students.reduce((max, s) => Math.max(max, s.level || 1), 1);
             
+            const filterText = filter === 'all' ? '전체' : `${filter}반`;
+            
             container.innerHTML = `
                 <div class="public-stat-item">
                     <div class="public-stat-value">${totalStudents}</div>
-                    <div class="public-stat-label">참여 학생</div>
+                    <div class="public-stat-label">${filterText} 학생 수</div>
                 </div>
                 <div class="public-stat-item">
                     <div class="public-stat-value">${averageScore}</div>
@@ -2366,11 +2476,13 @@
             
             const html = sortedStudents.map((student, index) => {
                 const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'other';
+                const isMe = gameState.currentUser === student.name && gameState.currentClass === student.class;
+                
                 return `
-                    <div class="public-rank-item">
+                    <div class="public-rank-item ${isMe ? 'highlight' : ''}">
                         <div class="public-rank-number ${rankClass}">${index + 1}</div>
                         <div class="public-rank-info">
-                            <div class="public-rank-name">${student.class}반 ${student.name}</div>
+                            <div class="public-rank-name">${student.class}반 ${student.name} ${isMe ? '(나)' : ''}</div>
                             <div class="public-rank-details">
                                 <span class="public-rank-score">${student.score}점</span>
                                 <span class="public-rank-level">Level ${student.level}</span>
@@ -2383,7 +2495,7 @@
             container.innerHTML = html;
         }
 
-        function updatePublicClassRanking(students) {
+        function updatePublicClassTop(students) {
             const container = document.getElementById('publicClassRanking');
             
             const classBest = {};
@@ -2400,24 +2512,117 @@
             
             const html = Object.entries(classBest)
                 .filter(([_, student]) => student !== null)
-                .map(([classNum, student]) => `
-                    <div class="public-rank-item">
-                        <div class="public-rank-number other">${classNum}반</div>
+                .map(([classNum, student]) => {
+                    const isMe = gameState.currentUser === student.name && gameState.currentClass == classNum;
+                    
+                    return `
+                        <div class="public-rank-item ${isMe ? 'highlight' : ''}">
+                            <div class="public-rank-number other">${classNum}반</div>
+                            <div class="public-rank-info">
+                                <div class="public-rank-name">${student.name} ${isMe ? '(나)' : ''}</div>
+                                <div class="public-rank-details">
+                                    <span class="public-rank-score">${student.score}점</span>
+                                    <span class="public-rank-level">Level ${student.level}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            
+            container.innerHTML = html || '<p style="text-align: center; color: white;">아직 참여한 반이 없습니다.</p>';
+        }
+
+        function updateClassDetailRanking(students, classNum) {
+            const container = document.getElementById('publicOverallRanking');
+            
+            if (students.length === 0) {
+                container.innerHTML = `<p style="text-align: center; color: white;">${classNum}반에 아직 참여한 학생이 없습니다.</p>`;
+                return;
+            }
+            
+            const sortedStudents = students.sort((a, b) => b.score - a.score);
+            
+            const html = sortedStudents.map((student, index) => {
+                const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'other';
+                const isMe = gameState.currentUser === student.name && gameState.currentClass == student.class;
+                
+                return `
+                    <div class="public-rank-item ${isMe ? 'highlight' : ''}">
+                        <div class="public-rank-number ${rankClass}">${index + 1}</div>
                         <div class="public-rank-info">
-                            <div class="public-rank-name">${student.name}</div>
+                            <div class="public-rank-name">${student.name} ${isMe ? '(나)' : ''}</div>
                             <div class="public-rank-details">
                                 <span class="public-rank-score">${student.score}점</span>
                                 <span class="public-rank-level">Level ${student.level}</span>
                             </div>
                         </div>
                     </div>
-                `).join('');
+                `;
+            }).join('');
             
-            container.innerHTML = html || '<p style="text-align: center; color: white;">아직 참여한 반이 없습니다.</p>';
+            container.innerHTML = html;
+        }
+
+        function updateMyRankInClass(students, classNum) {
+            const container = document.getElementById('publicClassRanking');
+            
+            if (!gameState.currentUser || !gameState.currentClass) {
+                container.innerHTML = '<p style="text-align: center; color: white;">로그인하면 나의 순위를 확인할 수 있습니다.</p>';
+                return;
+            }
+            
+            const sortedStudents = students.sort((a, b) => b.score - a.score);
+            const myIndex = sortedStudents.findIndex(s => 
+                s.name === gameState.currentUser && s.class == gameState.currentClass
+            );
+            
+            if (myIndex === -1) {
+                container.innerHTML = '<p style="text-align: center; color: white;">아직 게임을 시작하지 않았습니다.</p>';
+                return;
+            }
+            
+            const myRank = myIndex + 1;
+            const myData = sortedStudents[myIndex];
+            const totalInClass = sortedStudents.length;
+            
+            let nearbyStudents = [];
+            
+            // 나를 중심으로 위아래 2명씩 표시
+            const start = Math.max(0, myIndex - 2);
+            const end = Math.min(sortedStudents.length, myIndex + 3);
+            nearbyStudents = sortedStudents.slice(start, end);
+            
+            const html = `
+                <div style="text-align: center; color: white; margin-bottom: 20px;">
+                    <h3>${gameState.currentClass}반 ${totalInClass}명 중 ${myRank}위</h3>
+                </div>
+                ${nearbyStudents.map((student, i) => {
+                    const actualRank = start + i + 1;
+                    const isMe = student.name === gameState.currentUser;
+                    const rankClass = actualRank === 1 ? 'gold' : 
+                                    actualRank === 2 ? 'silver' : 
+                                    actualRank === 3 ? 'bronze' : 'other';
+                    
+                    return `
+                        <div class="public-rank-item ${isMe ? 'highlight' : ''}">
+                            <div class="public-rank-number ${rankClass}">${actualRank}</div>
+                            <div class="public-rank-info">
+                                <div class="public-rank-name">${student.name} ${isMe ? '(나)' : ''}</div>
+                                <div class="public-rank-details">
+                                    <span class="public-rank-score">${student.score}점</span>
+                                    <span class="public-rank-level">Level ${student.level}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+            
+            container.innerHTML = html;
         }
 
         // ======================================
-        // 실시간 모니터링 (교사용)
+        // 실시간 모니터링 (교사용) - 이전과 동일
         // ======================================
         let monitoringRefs = [];
 
@@ -2591,7 +2796,7 @@
         }
 
         // ======================================
-        // 게임 로직
+        // 게임 로직 (이전과 동일)
         // ======================================
         
         function newProblem() {
@@ -2913,8 +3118,16 @@
 
         // 페이지 로드 시 초기화
         window.addEventListener('DOMContentLoaded', function() {
-            console.log('🎯 곱셈 마스터 v2.0 시작');
-            console.log('개선사항: 문제 중복 방지, 디버그 모드, 시스템 테스트');
+            console.log('🎯 곱셈 마스터 v3.0 시작');
+            console.log('개선사항: 스크롤 가능, 반별 상세 랭킹');
+            
+            // 화면 높이 조정 (모바일 대응)
+            const setViewportHeight = () => {
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            };
+            setViewportHeight();
+            window.addEventListener('resize', setViewportHeight);
             
             setTimeout(function() {
                 console.log('Firebase SDK 확인 중...');
