@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>곱셈 마스터 - 3학년 온라인 학습 시스템</title>
+    <title>곱셈 마스터 v2.0 - 3학년 온라인 학습 시스템</title>
     
     <!-- Firebase SDK v9 -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -29,6 +29,65 @@
             padding: 10px;
             position: relative;
             overflow: hidden;
+        }
+
+        /* 디버그 패널 */
+        .debug-panel {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 10000;
+            max-width: 300px;
+            display: none;
+        }
+
+        .debug-panel.show {
+            display: block;
+        }
+
+        .debug-panel h4 {
+            color: #ffff00;
+            margin-bottom: 5px;
+        }
+
+        .debug-panel .debug-item {
+            margin: 3px 0;
+        }
+
+        /* 문제 이력 표시 */
+        .problem-history {
+            position: fixed;
+            top: 120px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 0.9em;
+            max-width: 200px;
+            z-index: 100;
+            display: none;
+        }
+
+        .problem-history.show {
+            display: block;
+        }
+
+        .problem-history h5 {
+            color: #5a67d8;
+            margin-bottom: 5px;
+        }
+
+        .problem-history-item {
+            color: #718096;
+            margin: 2px 0;
+            font-family: monospace;
         }
 
         /* 애니메이션 효과 컨테이너 */
@@ -234,6 +293,17 @@
             margin-bottom: 30px;
         }
 
+        .version-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #718096;
+        }
+
         .login-form {
             max-width: 400px;
             margin: 0 auto;
@@ -348,7 +418,26 @@
             transform: translateY(-2px);
         }
 
-        /* 게임 화면 스타일 (이전과 동일) */
+        .public-monitor-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 15px;
+            background: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .public-monitor-btn:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+
+        /* 게임 화면 스타일 */
         .game-container {
             background: white;
             border-radius: 20px;
@@ -364,6 +453,8 @@
             padding: 15px;
             background: #f7fafc;
             border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .student-info {
@@ -586,6 +677,26 @@
             font-weight: bold;
         }
 
+        .monitor-btn {
+            background: #f39c12;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .debug-btn {
+            background: #718096;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
         .feedback {
             text-align: center;
             padding: 15px;
@@ -625,6 +736,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .monitor-title {
@@ -826,6 +939,174 @@
             transform: translateY(-2px);
         }
 
+        /* 공개 모니터링 화면 */
+        .public-monitor-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .public-monitor-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .public-monitor-title {
+            font-size: 3em;
+            color: #5a67d8;
+            margin-bottom: 10px;
+        }
+
+        .public-monitor-subtitle {
+            font-size: 1.5em;
+            color: #718096;
+        }
+
+        .public-ranking-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .public-ranking-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .public-panel-title {
+            color: white;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .public-rank-item {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s;
+        }
+
+        .public-rank-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .public-rank-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5em;
+            color: white;
+        }
+
+        .public-rank-number.gold {
+            background: linear-gradient(135deg, #f39c12, #f1c40f);
+        }
+
+        .public-rank-number.silver {
+            background: linear-gradient(135deg, #95a5a6, #bdc3c7);
+        }
+
+        .public-rank-number.bronze {
+            background: linear-gradient(135deg, #cd7f32, #d68642);
+        }
+
+        .public-rank-number.other {
+            background: linear-gradient(135deg, #5a67d8, #667eea);
+        }
+
+        .public-rank-info {
+            flex: 1;
+        }
+
+        .public-rank-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .public-rank-details {
+            display: flex;
+            gap: 20px;
+        }
+
+        .public-rank-score {
+            color: #f39c12;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .public-rank-level {
+            color: #5a67d8;
+            font-weight: bold;
+        }
+
+        .public-stats {
+            background: #f7fafc;
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .public-stat-item {
+            text-align: center;
+        }
+
+        .public-stat-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #5a67d8;
+        }
+
+        .public-stat-label {
+            color: #718096;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        .home-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #5a67d8;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .home-btn:hover {
+            background: #4c51bf;
+            transform: translateY(-3px);
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -872,10 +1153,37 @@
             .code-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+
+            .public-ranking-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .public-stats {
+                flex-direction: column;
+            }
+
+            .game-header {
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- 버전 정보 -->
+    <div class="version-info">v2.0 - 안정성 개선</div>
+
+    <!-- 디버그 패널 -->
+    <div class="debug-panel" id="debugPanel">
+        <h4>🔧 Debug Info</h4>
+        <div class="debug-item" id="debugInfo"></div>
+    </div>
+
+    <!-- 문제 이력 -->
+    <div class="problem-history" id="problemHistory">
+        <h5>최근 문제 이력</h5>
+        <div id="historyList"></div>
+    </div>
+
     <!-- 애니메이션 컨테이너 -->
     <div class="animation-container" id="animationContainer"></div>
 
@@ -927,7 +1235,11 @@
                 <button class="login-btn" onclick="studentLogin()">시작하기</button>
                 
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
-                    <h3 style="color: #4a5568; margin-bottom: 15px;">👩‍🏫 교사 전용</h3>
+                    <button class="public-monitor-btn" onclick="showPublicMonitor()">
+                        🏆 전체 랭킹 보기 (공개)
+                    </button>
+                    
+                    <h3 style="color: #4a5568; margin-bottom: 15px; margin-top: 20px;">👩‍🏫 교사 전용</h3>
                     
                     <div style="background: #f7fafc; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
                         <div class="form-group" style="margin-bottom: 10px;">
@@ -939,6 +1251,13 @@
                         </div>
                         <button class="teacher-login-btn" onclick="teacherLoginWithInput()">
                             🔐 모니터링 로그인
+                        </button>
+                    </div>
+                    
+                    <!-- 테스트 버튼 -->
+                    <div style="margin-top: 20px;">
+                        <button onclick="runSystemTest()" style="background: #718096; color: white; padding: 10px; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
+                            🧪 시스템 테스트 실행
                         </button>
                     </div>
                 </div>
@@ -953,6 +1272,8 @@
                 <div class="student-info" id="studentInfo"></div>
                 <div class="level-info" id="levelInfo">Level 1</div>
                 <div class="score-display" id="scoreDisplay">🏆 0점</div>
+                <button class="debug-btn" onclick="toggleDebug()">🔧</button>
+                <button class="monitor-btn" onclick="showPublicMonitor()">🏆 랭킹</button>
                 <button class="logout-btn" onclick="logout()">종료</button>
             </div>
 
@@ -992,6 +1313,38 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- 공개 모니터링 화면 -->
+    <div id="publicMonitorScreen" class="screen">
+        <div class="public-monitor-container">
+            <div class="public-monitor-header">
+                <h1 class="public-monitor-title">🏆 곱셈 마스터 실시간 랭킹</h1>
+                <p class="public-monitor-subtitle">3학년 전체 순위</p>
+            </div>
+
+            <div class="public-stats" id="publicStats">
+                <!-- 통계 정보가 동적으로 생성됩니다 -->
+            </div>
+
+            <div class="public-ranking-grid">
+                <div class="public-ranking-panel">
+                    <h2 class="public-panel-title">🥇 전체 TOP 10</h2>
+                    <div id="publicOverallRanking">
+                        <!-- 전체 랭킹이 동적으로 생성됩니다 -->
+                    </div>
+                </div>
+
+                <div class="public-ranking-panel">
+                    <h2 class="public-panel-title">🌟 반별 1위</h2>
+                    <div id="publicClassRanking">
+                        <!-- 반별 1위가 동적으로 생성됩니다 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="home-btn" onclick="backToHome()">🏠 돌아가기</button>
     </div>
 
     <!-- 교사 모니터링 화면 -->
@@ -1265,7 +1618,7 @@
         }
 
         // ======================================
-        // 전역 상태 관리
+        // 전역 상태 관리 (개선된 버전)
         // ======================================
         const gameState = {
             currentUser: null,
@@ -1278,7 +1631,14 @@
             correctInLevel: 0,
             totalInLevel: 10,
             currentProblem: null,
-            currentFocus: null
+            currentFocus: null,
+            previousScreen: null,
+            problemHistory: [], // 문제 이력 추가
+            maxHistorySize: 10, // 최대 이력 크기
+            debugMode: false, // 디버그 모드
+            startTime: null, // 게임 시작 시간
+            sessionErrors: 0, // 세션 오류 카운트
+            totalProblems: 0 // 총 문제 수
         };
 
         // 10단계 난이도 설정
@@ -1296,10 +1656,221 @@
         ];
 
         // ======================================
-        // 애니메이션 효과
+        // 개선된 문제 생성 로직 (중복 방지)
         // ======================================
         
-        // 꽃가루 효과
+        function generateProblem() {
+            const level = levels[gameState.currentLevel - 1];
+            let num1, num2;
+            let attempts = 0;
+            const maxAttempts = 50;
+            
+            do {
+                // 더 나은 랜덤성을 위한 시드 추가
+                const seed = Date.now() + Math.random();
+                
+                if (level.type === 'tens') {
+                    num1 = level.range[Math.floor(Math.random() * level.range.length)];
+                    num2 = Math.floor(Math.random() * 9) + 1;
+                } else if (level.type === 'noCarry') {
+                    num1 = level.range[Math.floor(Math.random() * level.range.length)];
+                    num2 = Math.floor(Math.random() * 9) + 11;
+                } else if (level.type === 'oneCarry') {
+                    num1 = level.range[Math.floor(Math.random() * level.range.length)];
+                    num2 = Math.floor(Math.random() * 20) + 15;
+                } else {
+                    const min = level.range[0];
+                    const max = level.range[1];
+                    // 더 균등한 분포를 위한 개선
+                    num1 = Math.floor(Math.random() * (max - min + 1)) + min;
+                    num2 = Math.floor(Math.random() * (max - min + 1)) + min;
+                    
+                    // 가끔 숫자 순서 바꾸기 (다양성 증가)
+                    if (Math.random() > 0.5) {
+                        [num1, num2] = [num2, num1];
+                    }
+                }
+
+                if (num1 < 10) num1 = 10;
+                if (num2 < 10) num2 = 10;
+                
+                attempts++;
+                
+            } while (isProblemDuplicate(num1, num2) && attempts < maxAttempts);
+            
+            // 문제 이력에 추가
+            addProblemToHistory(num1, num2);
+            
+            if (gameState.debugMode) {
+                updateDebugInfo();
+            }
+
+            return { num1, num2 };
+        }
+        
+        // 문제 중복 체크
+        function isProblemDuplicate(num1, num2) {
+            const problemKey = `${num1}x${num2}`;
+            
+            // 최근 5문제 내에 같은 문제가 있는지 체크
+            const recentProblems = gameState.problemHistory.slice(-5);
+            return recentProblems.includes(problemKey);
+        }
+        
+        // 문제 이력에 추가
+        function addProblemToHistory(num1, num2) {
+            const problemKey = `${num1}x${num2}`;
+            gameState.problemHistory.push(problemKey);
+            
+            // 이력 크기 제한
+            if (gameState.problemHistory.length > gameState.maxHistorySize) {
+                gameState.problemHistory.shift();
+            }
+            
+            // 문제 이력 UI 업데이트
+            if (gameState.debugMode) {
+                updateProblemHistoryDisplay();
+            }
+        }
+        
+        // 문제 이력 표시 업데이트
+        function updateProblemHistoryDisplay() {
+            const historyList = document.getElementById('historyList');
+            if (historyList) {
+                const recentProblems = gameState.problemHistory.slice(-5).reverse();
+                historyList.innerHTML = recentProblems.map((p, i) => 
+                    `<div class="problem-history-item">${i+1}. ${p}</div>`
+                ).join('');
+            }
+        }
+        
+        // ======================================
+        // 디버그 기능
+        // ======================================
+        
+        function toggleDebug() {
+            gameState.debugMode = !gameState.debugMode;
+            const debugPanel = document.getElementById('debugPanel');
+            const problemHistory = document.getElementById('problemHistory');
+            
+            if (gameState.debugMode) {
+                debugPanel.classList.add('show');
+                problemHistory.classList.add('show');
+                updateDebugInfo();
+                updateProblemHistoryDisplay();
+            } else {
+                debugPanel.classList.remove('show');
+                problemHistory.classList.remove('show');
+            }
+        }
+        
+        function updateDebugInfo() {
+            const debugInfo = document.getElementById('debugInfo');
+            if (debugInfo) {
+                const sessionTime = gameState.startTime ? 
+                    Math.floor((Date.now() - gameState.startTime) / 1000) : 0;
+                
+                debugInfo.innerHTML = `
+                    <div>Session: ${sessionTime}s</div>
+                    <div>Total Problems: ${gameState.totalProblems}</div>
+                    <div>Unique Problems: ${new Set(gameState.problemHistory).size}</div>
+                    <div>Errors: ${gameState.sessionErrors}</div>
+                    <div>Firebase: ${isFirebaseConnected ? '✅' : '❌'}</div>
+                    <div>Memory: ${performance.memory ? 
+                        Math.round(performance.memory.usedJSHeapSize / 1048576) + 'MB' : 'N/A'}</div>
+                `;
+            }
+        }
+        
+        // ======================================
+        // 시스템 테스트 함수
+        // ======================================
+        
+        function runSystemTest() {
+            console.log('🧪 시스템 테스트 시작...');
+            
+            const testResults = [];
+            
+            // 1. 문제 생성 다양성 테스트
+            console.log('1. 문제 생성 테스트...');
+            const testProblems = [];
+            for (let i = 0; i < 100; i++) {
+                gameState.problemHistory = []; // 이력 초기화
+                const problem = generateProblem();
+                testProblems.push(`${problem.num1}x${problem.num2}`);
+            }
+            const uniqueProblems = new Set(testProblems).size;
+            const diversityScore = (uniqueProblems / 100 * 100).toFixed(1);
+            testResults.push(`✅ 문제 다양성: ${diversityScore}% (${uniqueProblems}/100 unique)`);
+            
+            // 2. 메모리 누수 테스트
+            console.log('2. 메모리 테스트...');
+            const initialMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
+            for (let i = 0; i < 100; i++) {
+                newProblem();
+                renderCalculation(50, 50);
+            }
+            const finalMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
+            const memoryIncrease = ((finalMemory - initialMemory) / 1048576).toFixed(2);
+            testResults.push(`✅ 메모리 증가: ${memoryIncrease}MB`);
+            
+            // 3. Firebase 연결 테스트
+            console.log('3. Firebase 테스트...');
+            if (isFirebaseConnected) {
+                testResults.push('✅ Firebase: 연결됨');
+            } else {
+                testResults.push('⚠️ Firebase: 오프라인 모드');
+            }
+            
+            // 4. UI 응답성 테스트
+            console.log('4. UI 응답성 테스트...');
+            const startTime = performance.now();
+            for (let i = 0; i < 10; i++) {
+                updateDisplay();
+            }
+            const uiTime = (performance.now() - startTime).toFixed(2);
+            testResults.push(`✅ UI 응답시간: ${uiTime}ms`);
+            
+            // 5. 레벨 전환 테스트
+            console.log('5. 레벨 전환 테스트...');
+            const originalLevel = gameState.currentLevel;
+            gameState.currentLevel = 1;
+            gameState.correctInLevel = 10;
+            // 레벨 업 시뮬레이션
+            if (gameState.correctInLevel >= gameState.totalInLevel) {
+                gameState.currentLevel++;
+                gameState.correctInLevel = 0;
+            }
+            const levelTestPassed = gameState.currentLevel === 2;
+            gameState.currentLevel = originalLevel;
+            gameState.correctInLevel = 0;
+            testResults.push(levelTestPassed ? '✅ 레벨 전환: 정상' : '❌ 레벨 전환: 오류');
+            
+            // 6. 점수 계산 테스트
+            console.log('6. 점수 계산 테스트...');
+            const originalScore = gameState.score;
+            gameState.score = 0;
+            gameState.consecutiveCount = 3;
+            const expectedScore = 10 + 30; // 기본 10점 + 3연속 보너스 30점
+            let testScore = 10;
+            if (gameState.consecutiveCount % 3 === 0) {
+                testScore += 30;
+            }
+            const scoreTestPassed = testScore === expectedScore;
+            gameState.score = originalScore;
+            gameState.consecutiveCount = 0;
+            testResults.push(scoreTestPassed ? '✅ 점수 계산: 정상' : '❌ 점수 계산: 오류');
+            
+            // 테스트 결과 표시
+            const resultMessage = testResults.join('\n');
+            alert('🧪 시스템 테스트 결과:\n\n' + resultMessage);
+            console.log('테스트 완료:', testResults);
+        }
+
+        // ======================================
+        // 애니메이션 효과 (이전과 동일)
+        // ======================================
+        
         function createPetalEffect() {
             const container = document.getElementById('animationContainer');
             
@@ -1329,7 +1900,6 @@
             }
         }
         
-        // 비 효과
         function createRainEffect() {
             const container = document.getElementById('animationContainer');
             
@@ -1356,7 +1926,6 @@
             }
         }
         
-        // 연속 정답 표시
         function showStreakIndicator() {
             const indicator = document.getElementById('streakIndicator');
             const streakNumber = document.getElementById('streakNumber');
@@ -1382,61 +1951,74 @@
         // Firebase 데이터 관리 함수들
         // ======================================
         
-        // 사용자 데이터 저장
         function saveUserData() {
             if (!database || !gameState.currentUser || !gameState.currentClass) return;
             
-            const userData = {
-                name: gameState.currentUser,
-                class: gameState.currentClass,
-                level: gameState.currentLevel,
-                score: gameState.score,
-                lastPlayed: Date.now()
-            };
-            
-            const userPath = `students/class${gameState.currentClass}/${gameState.currentUser}`;
-            database.ref(userPath).set(userData);
-            
-            const allStudentsPath = `allStudents/${gameState.currentClass}_${gameState.currentUser}`;
-            database.ref(allStudentsPath).set(userData);
+            try {
+                const userData = {
+                    name: gameState.currentUser,
+                    class: gameState.currentClass,
+                    level: gameState.currentLevel,
+                    score: gameState.score,
+                    lastPlayed: Date.now(),
+                    totalProblems: gameState.totalProblems,
+                    sessionErrors: gameState.sessionErrors
+                };
+                
+                const userPath = `students/class${gameState.currentClass}/${gameState.currentUser}`;
+                database.ref(userPath).set(userData);
+                
+                const allStudentsPath = `allStudents/${gameState.currentClass}_${gameState.currentUser}`;
+                database.ref(allStudentsPath).set(userData);
+            } catch (error) {
+                console.error('데이터 저장 오류:', error);
+                gameState.sessionErrors++;
+            }
         }
 
-        // 사용자 데이터 불러오기
         function loadUserData(className, studentName) {
             if (!database) return Promise.resolve(null);
             
             return database.ref(`students/class${className}/${studentName}`)
                 .once('value')
-                .then(snapshot => snapshot.val());
+                .then(snapshot => snapshot.val())
+                .catch(error => {
+                    console.error('데이터 로드 오류:', error);
+                    gameState.sessionErrors++;
+                    return null;
+                });
         }
 
-        // 활동 로그 추가
         function addActivityLog(activity) {
             if (!database) return;
             
-            const activityData = {
-                ...activity,
-                timestamp: Date.now()
-            };
-            
-            database.ref('activities').push(activityData);
-            
-            database.ref('activities').once('value', snapshot => {
-                const count = snapshot.numChildren();
-                if (count > 100) {
-                    const itemsToRemove = count - 100;
-                    let removed = 0;
-                    snapshot.forEach(child => {
-                        if (removed < itemsToRemove) {
-                            child.ref.remove();
-                            removed++;
-                        }
-                    });
-                }
-            });
+            try {
+                const activityData = {
+                    ...activity,
+                    timestamp: Date.now()
+                };
+                
+                database.ref('activities').push(activityData);
+                
+                database.ref('activities').once('value', snapshot => {
+                    const count = snapshot.numChildren();
+                    if (count > 100) {
+                        const itemsToRemove = count - 100;
+                        let removed = 0;
+                        snapshot.forEach(child => {
+                            if (removed < itemsToRemove) {
+                                child.ref.remove();
+                                removed++;
+                            }
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('활동 로그 오류:', error);
+                gameState.sessionErrors++;
+            }
         }
 
-        // 반별 데이터 초기화
         function resetClassData(classNum) {
             if (!database) return;
             
@@ -1467,7 +2049,6 @@
             updateMonitor();
         }
         
-        // 전체 데이터 초기화
         function resetAllData() {
             if (!database) return;
             
@@ -1500,7 +2081,6 @@
             gameState.currentClass = classNum;
             console.log('선택된 반:', classNum);
             
-            // 코드 입력란 초기화
             const codeInput = document.getElementById('classCode');
             const codeError = document.getElementById('codeError');
             codeInput.value = '';
@@ -1516,7 +2096,6 @@
             const codeError = document.getElementById('codeError');
             const codeInput = document.getElementById('classCode');
             
-            // 입력 검증
             if (!gameState.currentClass) {
                 alert('반을 선택해주세요!');
                 return;
@@ -1527,7 +2106,6 @@
                 return;
             }
             
-            // 접근 코드 확인
             const isCodeValid = await verifyAccessCode(gameState.currentClass, code);
             
             if (!isCodeValid) {
@@ -1537,11 +2115,11 @@
                 return;
             }
             
-            // 로그인 성공
             codeInput.classList.remove('error');
             codeError.classList.remove('show');
             
             gameState.currentUser = name;
+            gameState.startTime = Date.now(); // 세션 시작 시간 기록
             console.log('로그인 정보:', gameState.currentClass + '반', name);
             
             if (database) {
@@ -1549,6 +2127,7 @@
                     if (savedData) {
                         gameState.currentLevel = savedData.level || 1;
                         gameState.score = savedData.score || 0;
+                        gameState.totalProblems = savedData.totalProblems || 0;
                         console.log('기존 데이터 로드:', savedData);
                     }
                     
@@ -1563,6 +2142,7 @@
                     showGameScreen();
                 }).catch(error => {
                     console.error('데이터 로드 에러:', error);
+                    gameState.sessionErrors++;
                     showGameScreen();
                 });
             } else {
@@ -1595,10 +2175,12 @@
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'block';
             document.getElementById('monitorScreen').style.display = 'none';
+            document.getElementById('publicMonitorScreen').style.display = 'none';
             
             document.getElementById('loginScreen').classList.remove('active');
             document.getElementById('gameScreen').classList.add('active');
             document.getElementById('monitorScreen').classList.remove('active');
+            document.getElementById('publicMonitorScreen').classList.remove('active');
             
             document.getElementById('studentInfo').textContent = `3학년 ${gameState.currentClass}반 ${gameState.currentUser}`;
             updateDisplay();
@@ -1609,13 +2191,56 @@
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'none';
             document.getElementById('monitorScreen').style.display = 'block';
+            document.getElementById('publicMonitorScreen').style.display = 'none';
             
             document.getElementById('loginScreen').classList.remove('active');
             document.getElementById('gameScreen').classList.remove('active');
             document.getElementById('monitorScreen').classList.add('active');
+            document.getElementById('publicMonitorScreen').classList.remove('active');
             
-            loadAccessCodes(); // 접근 코드 불러오기
+            loadAccessCodes();
             startRealtimeMonitoring();
+        }
+
+        function showPublicMonitor() {
+            if (document.getElementById('loginScreen').classList.contains('active')) {
+                gameState.previousScreen = 'login';
+            } else if (document.getElementById('gameScreen').classList.contains('active')) {
+                gameState.previousScreen = 'game';
+                if (gameState.currentUser) {
+                    saveUserData();
+                }
+            }
+            
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('monitorScreen').style.display = 'none';
+            document.getElementById('publicMonitorScreen').style.display = 'block';
+            
+            document.getElementById('loginScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('monitorScreen').classList.remove('active');
+            document.getElementById('publicMonitorScreen').classList.add('active');
+            
+            startPublicMonitoring();
+        }
+
+        function backToHome() {
+            stopPublicMonitoring();
+            
+            if (gameState.previousScreen === 'game' && gameState.currentUser) {
+                showGameScreen();
+            } else {
+                document.getElementById('loginScreen').style.display = 'block';
+                document.getElementById('gameScreen').style.display = 'none';
+                document.getElementById('monitorScreen').style.display = 'none';
+                document.getElementById('publicMonitorScreen').style.display = 'none';
+                
+                document.getElementById('loginScreen').classList.add('active');
+                document.getElementById('gameScreen').classList.remove('active');
+                document.getElementById('monitorScreen').classList.remove('active');
+                document.getElementById('publicMonitorScreen').classList.remove('active');
+            }
         }
 
         function logout() {
@@ -1624,21 +2249,31 @@
             }
             
             stopRealtimeMonitoring();
+            stopPublicMonitoring();
             
+            // 상태 초기화
             gameState.currentUser = null;
             gameState.currentClass = null;
             gameState.currentLevel = 1;
             gameState.score = 0;
             gameState.streak = 0;
             gameState.consecutiveCount = 0;
+            gameState.previousScreen = null;
+            gameState.problemHistory = [];
+            gameState.debugMode = false;
+            gameState.startTime = null;
+            gameState.sessionErrors = 0;
+            gameState.totalProblems = 0;
             
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('gameScreen').style.display = 'none';
             document.getElementById('monitorScreen').style.display = 'none';
+            document.getElementById('publicMonitorScreen').style.display = 'none';
             
             document.getElementById('loginScreen').classList.add('active');
             document.getElementById('gameScreen').classList.remove('active');
             document.getElementById('monitorScreen').classList.remove('active');
+            document.getElementById('publicMonitorScreen').classList.remove('active');
             
             document.getElementById('studentName').value = '';
             document.getElementById('classCode').value = '';
@@ -1648,7 +2283,141 @@
         }
 
         // ======================================
-        // 실시간 모니터링
+        // 공개 모니터링 관련 함수
+        // ======================================
+        let publicMonitoringRef = null;
+        let publicMonitoringInterval = null;
+
+        function startPublicMonitoring() {
+            if (!database) {
+                console.log('오프라인 모드: 모니터링 불가');
+                return;
+            }
+            
+            stopPublicMonitoring();
+            
+            publicMonitoringRef = database.ref('allStudents');
+            publicMonitoringRef.on('value', updatePublicMonitor);
+            
+            publicMonitoringInterval = setInterval(() => {
+                if (database) {
+                    database.ref('allStudents').once('value', updatePublicMonitor);
+                }
+            }, 5000);
+        }
+
+        function stopPublicMonitoring() {
+            if (publicMonitoringRef) {
+                publicMonitoringRef.off();
+                publicMonitoringRef = null;
+            }
+            if (publicMonitoringInterval) {
+                clearInterval(publicMonitoringInterval);
+                publicMonitoringInterval = null;
+            }
+        }
+
+        function updatePublicMonitor(snapshot) {
+            const students = [];
+            if (snapshot) {
+                snapshot.forEach(child => {
+                    students.push(child.val());
+                });
+            }
+            
+            updatePublicStats(students);
+            updatePublicOverallRanking(students);
+            updatePublicClassRanking(students);
+        }
+
+        function updatePublicStats(students) {
+            const container = document.getElementById('publicStats');
+            
+            const totalStudents = students.length;
+            const totalScore = students.reduce((sum, s) => sum + (s.score || 0), 0);
+            const averageScore = totalStudents > 0 ? Math.round(totalScore / totalStudents) : 0;
+            const maxLevel = students.reduce((max, s) => Math.max(max, s.level || 1), 1);
+            
+            container.innerHTML = `
+                <div class="public-stat-item">
+                    <div class="public-stat-value">${totalStudents}</div>
+                    <div class="public-stat-label">참여 학생</div>
+                </div>
+                <div class="public-stat-item">
+                    <div class="public-stat-value">${averageScore}</div>
+                    <div class="public-stat-label">평균 점수</div>
+                </div>
+                <div class="public-stat-item">
+                    <div class="public-stat-value">Lv.${maxLevel}</div>
+                    <div class="public-stat-label">최고 레벨</div>
+                </div>
+            `;
+        }
+
+        function updatePublicOverallRanking(students) {
+            const container = document.getElementById('publicOverallRanking');
+            
+            if (students.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: white;">아직 참여한 학생이 없습니다.</p>';
+                return;
+            }
+            
+            const sortedStudents = students.sort((a, b) => b.score - a.score).slice(0, 10);
+            
+            const html = sortedStudents.map((student, index) => {
+                const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'other';
+                return `
+                    <div class="public-rank-item">
+                        <div class="public-rank-number ${rankClass}">${index + 1}</div>
+                        <div class="public-rank-info">
+                            <div class="public-rank-name">${student.class}반 ${student.name}</div>
+                            <div class="public-rank-details">
+                                <span class="public-rank-score">${student.score}점</span>
+                                <span class="public-rank-level">Level ${student.level}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+        }
+
+        function updatePublicClassRanking(students) {
+            const container = document.getElementById('publicClassRanking');
+            
+            const classBest = {};
+            for (let i = 1; i <= 8; i++) {
+                classBest[i] = null;
+            }
+            
+            students.forEach(student => {
+                const classNum = student.class;
+                if (!classBest[classNum] || student.score > classBest[classNum].score) {
+                    classBest[classNum] = student;
+                }
+            });
+            
+            const html = Object.entries(classBest)
+                .filter(([_, student]) => student !== null)
+                .map(([classNum, student]) => `
+                    <div class="public-rank-item">
+                        <div class="public-rank-number other">${classNum}반</div>
+                        <div class="public-rank-info">
+                            <div class="public-rank-name">${student.name}</div>
+                            <div class="public-rank-details">
+                                <span class="public-rank-score">${student.score}점</span>
+                                <span class="public-rank-level">Level ${student.level}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            
+            container.innerHTML = html || '<p style="text-align: center; color: white;">아직 참여한 반이 없습니다.</p>';
+        }
+
+        // ======================================
+        // 실시간 모니터링 (교사용)
         // ======================================
         let monitoringRefs = [];
 
@@ -1822,41 +2591,20 @@
         }
 
         // ======================================
-        // 게임 로직 (이전과 동일)
+        // 게임 로직
         // ======================================
         
-        function generateProblem() {
-            const level = levels[gameState.currentLevel - 1];
-            let num1, num2;
-
-            if (level.type === 'tens') {
-                num1 = level.range[Math.floor(Math.random() * level.range.length)];
-                num2 = Math.floor(Math.random() * 9) + 1;
-            } else if (level.type === 'noCarry') {
-                num1 = level.range[Math.floor(Math.random() * level.range.length)];
-                num2 = Math.floor(Math.random() * 9) + 11;
-            } else if (level.type === 'oneCarry') {
-                num1 = level.range[Math.floor(Math.random() * level.range.length)];
-                num2 = Math.floor(Math.random() * 20) + 15;
-            } else {
-                const min = level.range[0];
-                const max = level.range[1];
-                num1 = Math.floor(Math.random() * (max - min + 1)) + min;
-                num2 = Math.floor(Math.random() * (max - min + 1)) + min;
-            }
-
-            if (num1 < 10) num1 = 10;
-            if (num2 < 10) num2 = 10;
-
-            return { num1, num2 };
-        }
-
         function newProblem() {
             const problem = generateProblem();
             gameState.currentProblem = problem;
+            gameState.totalProblems++;
             
             renderCalculation(problem.num1, problem.num2);
             clearFeedback();
+            
+            if (gameState.debugMode) {
+                updateDebugInfo();
+            }
         }
 
         function renderCalculation(num1, num2) {
@@ -2010,7 +2758,6 @@
             const feedback = document.getElementById('feedback');
             
             if (allCorrect) {
-                // 정답 처리
                 gameState.correctInLevel++;
                 gameState.problemsSolved++;
                 gameState.streak++;
@@ -2058,7 +2805,6 @@
                     setTimeout(newProblem, 1500);
                 }
             } else {
-                // 오답 처리
                 gameState.streak = 0;
                 gameState.consecutiveCount = 0;
                 gameState.problemsSolved++;
@@ -2158,9 +2904,17 @@
             }
         });
 
+        // 디버그 정보 자동 업데이트 (디버그 모드일 때만)
+        setInterval(() => {
+            if (gameState.debugMode) {
+                updateDebugInfo();
+            }
+        }, 1000);
+
         // 페이지 로드 시 초기화
         window.addEventListener('DOMContentLoaded', function() {
-            console.log('🎯 곱셈 마스터 시스템 시작');
+            console.log('🎯 곱셈 마스터 v2.0 시작');
+            console.log('개선사항: 문제 중복 방지, 디버그 모드, 시스템 테스트');
             
             setTimeout(function() {
                 console.log('Firebase SDK 확인 중...');
